@@ -49,6 +49,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int requestsError = 0;
         private int sessionsTotal = 0;
         private int sessionsAuthenticated = 0;
+        private int c3p0MaxPoolSize = 0;
+        private int c3p0NumConnections = 0;
+        private int c3p0NumBusyConnections = 0;
 
         public long getMemoryFree() {
             return memoryFree;
@@ -137,6 +140,30 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         public int getSessionsAnonymous() {
             return sessionsTotal - sessionsAuthenticated;
         }
+
+        public int getC3p0MaxPoolSize() {
+            return c3p0MaxPoolSize;
+        }
+
+        public void setC3p0MaxPoolSize(int c3p0MaxPoolSize) {
+            this.c3p0MaxPoolSize = c3p0MaxPoolSize;
+        }
+
+        public int getC3p0NumConnections() {
+            return c3p0NumConnections;
+        }
+
+        public void setC3p0NumConnections(int c3p0NumConnections) {
+            this.c3p0NumConnections = c3p0NumConnections;
+        }
+
+        public int getC3p0NumBusyConnections() {
+            return c3p0NumBusyConnections;
+        }
+
+        public void setC3p0NumBusyConnections(int c3p0NumBusyConnections) {
+            this.c3p0NumBusyConnections = c3p0NumBusyConnections;
+        }
     }
 
     @Override
@@ -195,6 +222,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("sessions.total=" + result.getSessionsTotal());
                     out.println("sessions.authenticated=" + result.getSessionsAuthenticated());
                     out.println("sessions.anonymous=" + result.getSessionsAnonymous());
+
+                    getC3p0State(result, context);
+                    out.println("c3p0.maxPoolSize=" + result.getC3p0MaxPoolSize());
+                    out.println("c3p0.numConnections=" + result.getC3p0NumConnections());
+                    out.println("c3p0.numBusyConnections=" + result.getC3p0NumBusyConnections());
                 }
             }
             else if (var.equals("memory.total")) {
@@ -248,6 +280,18 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("sessions.anonymous")) {
                 getContextState(result, context);
                 out.println(result.getSessionsAnonymous());
+            }
+            else if (var.equals("c3p0.maxPoolSize")) {
+                getC3p0State(result, context);
+                out.println(result.getC3p0MaxPoolSize());
+            }
+            else if (var.equals("c3p0.numConnections")) {
+                getC3p0State(result, context);
+                out.println(result.getC3p0NumConnections());
+            }
+            else if (var.equals("c3p0.numBusyConnections")) {
+                getC3p0State(result, context);
+                out.println(result.getC3p0NumBusyConnections());
             }
             else {
                 throw new IllegalArgumentException("Unknown variable: " + var);
@@ -318,6 +362,41 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 // Normalement, il n'y a qu'un seul GlobalRequestProcessor par type de connecteur
                 if (iterator.hasNext())
                     throw new RuntimeException("Plusieurs GlobalRequestProcessor: " + onStr);
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void getC3p0State(Result result, String contextPath) {
+        if (contextPath == null)
+            throw new IllegalArgumentException("Missing argument: context");
+
+        String contextDataSourceName = contextPath.substring(1);
+        boolean found = false;
+
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            String onStr = "com.mchange.v2.c3p0:type=PooledDataSource[*]";
+            ObjectName objectName = new ObjectName(onStr);
+            Set set = mBeanServer.queryMBeans(objectName, null);
+            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = (ObjectInstance) iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                String dataSourceName = (String)mBeanServer.getAttribute(rpName, "dataSourceName");
+                if (!dataSourceName.equals(contextDataSourceName))
+                    continue;
+
+                // S'il y a plusieurs PooledDataSource avec le même dataSourceName, on ne sait pas laquelle choisir...
+                if (found)
+                    throw new RuntimeException("Plusieurs PooledDataSource avec dataSourceName=\"" + contextDataSourceName + "\".");
+
+                result.setC3p0MaxPoolSize(((Integer)mBeanServer.getAttribute(rpName, "maxPoolSize")));
+                result.setC3p0NumConnections(((Integer)mBeanServer.getAttribute(rpName, "numConnections")));
+                result.setC3p0NumBusyConnections(((Integer)mBeanServer.getAttribute(rpName, "numBusyConnections")));
+                
+                found = true;
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
