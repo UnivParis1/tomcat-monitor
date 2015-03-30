@@ -1,0 +1,11 @@
+# Fichiers générés par NetBeans
+nbproject/private
+nbproject/ant-deploy.xml
+nbproject/build-impl.xml
+nbproject/genfiles.properties
+build
+dist
+
+# Fichiers générés par NetBeans, s'ils n'existent pas dans le projet
+build.xml
+manifest.mf
