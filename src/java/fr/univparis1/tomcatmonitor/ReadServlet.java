@@ -42,6 +42,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         // Memory
         private long memoryFree = 0;
         private long memoryTotal = 0;
+        private long memoryMax = 0;
         private int threadsService = 0;
         private int threadsKeepalive = 0;
         private int threadsTotal = 0;
@@ -71,6 +72,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public long getMemoryUsed() {
             return memoryTotal - memoryFree;
+        }
+
+        public long getMemoryMax() {
+            return memoryMax;
+        }
+
+        public void setMemoryMax(long memoryMax) {
+            this.memoryMax = memoryMax;
         }
 
         public int getThreadsService() {
@@ -205,6 +214,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 out.println("memory.total=" + result.getMemoryTotal());
                 out.println("memory.used=" + result.getMemoryUsed());
                 out.println("memory.free=" + result.getMemoryFree());
+                out.println("memory.max=" + result.getMemoryMax());
 
                 getThreadsState(result);
                 out.println("threads.total=" + result.getThreadsTotal());
@@ -240,6 +250,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("memory.free")) {
                 getMemoryState(result);
                 out.println(result.getMemoryFree());
+            }
+            else if (var.equals("memory.max")) {
+                getMemoryState(result);
+                out.println(result.getMemoryMax());
             }
             else if (var.equals("threads.total")) {
                 getThreadsState(result);
@@ -315,6 +329,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         Runtime runtime = Runtime.getRuntime();
         result.setMemoryTotal(runtime.totalMemory());
         result.setMemoryFree(runtime.freeMemory());
+        result.setMemoryMax(runtime.maxMemory());
     }
 
     private void getThreadsState(Result result) {
