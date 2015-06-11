@@ -28,9 +28,8 @@ public class Tools {
             Method getPrincipal = assertion.getClass().getMethod("getPrincipal");
             Object principal = getPrincipal.invoke(assertion);
 
-            Method getAttributes = principal.getClass().getMethod("getAttributes");
-            Map map = (Map)getAttributes.invoke(principal);
-            uid = (String)map.get("uid");
+            Method getName = principal.getClass().getMethod("getName");
+            uid = (String)getName.invoke(principal);
 
             return uid;
         }
