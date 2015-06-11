@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -18,7 +17,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.catalina.Container;
 import org.apache.catalina.ContainerServlet;
 import org.apache.catalina.Context;
@@ -183,39 +181,11 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         long idle = (now - session.getLastAccessedTimeInternal()) / 1000;
         out.println("   Idle: " + idle + " secondes");
 
-        String uid = getCasUid(session);
+        String uid = Tools.getCasUid(session);
         if (uid != null)
             out.println("   Cas UID: " + uid);
         
         out.println();
-    }
-
-    private String getCasUid(Session session) {
-        try {
-            HttpSession httpSession = session.getSession();
-            
-            // Ancien client Yale
-            String uid = (String)httpSession.getAttribute("edu.yale.its.tp.cas.client.filter.user");
-            if (uid != null)
-                return uid;
-            
-            // Nouveau client Jasig
-            Object assertion = httpSession.getAttribute("_const_cas_assertion_");
-            if (assertion == null)
-                return null;
-
-            Method getPrincipal = assertion.getClass().getMethod("getPrincipal");
-            Object principal = getPrincipal.invoke(assertion);
-
-            Method getAttributes = principal.getClass().getMethod("getAttributes");
-            Map map = (Map)getAttributes.invoke(principal);
-            uid = (String)map.get("uid");
-
-            return uid;
-        }
-        catch (Exception e) {
-            return null;
-        }
     }
     
     private void printRequestProcessorState(PrintWriter out) throws ServletException, IOException {
