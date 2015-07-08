@@ -6,6 +6,8 @@ package fr.univparis1.tomcatmonitor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Set;
 import javax.management.JMException;
@@ -50,6 +52,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int c3p0MaxPoolSize = 0;
         private int c3p0NumConnections = 0;
         private int c3p0NumBusyConnections = 0;
+        private int sopraPoolMaxObjet = 0;
+        private int sopraPoolObjetUtilisees = 0;
 
         public long getMemoryFree() {
             return memoryFree;
@@ -170,6 +174,22 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         public void setC3p0NumBusyConnections(int c3p0NumBusyConnections) {
             this.c3p0NumBusyConnections = c3p0NumBusyConnections;
         }
+
+        public int getSopraPoolMaxObjet() {
+            return sopraPoolMaxObjet;
+        }
+
+        public void setSopraPoolMaxObjet(int sopraPoolMaxObjet) {
+            this.sopraPoolMaxObjet = sopraPoolMaxObjet;
+        }
+
+        public int getSopraPoolObjetUtilisees() {
+            return sopraPoolObjetUtilisees;
+        }
+
+        public void setSopraPoolObjetUtilisees(int sopraPoolObjetUtilisees) {
+            this.sopraPoolObjetUtilisees = sopraPoolObjetUtilisees;
+        }
     }
 
     @Override
@@ -229,6 +249,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("sessions.total=" + result.getSessionsTotal());
                     out.println("sessions.authenticated=" + result.getSessionsAuthenticated());
                     out.println("sessions.anonymous=" + result.getSessionsAnonymous());
+                    out.println("sopraPool.maxObjet=" + result.getSopraPoolMaxObjet());
+                    out.println("sopraPool.objetUtilisees=" + result.getSopraPoolObjetUtilisees());
 
                     getC3p0State(result, context);
                     out.println("c3p0.maxPoolSize=" + result.getC3p0MaxPoolSize());
@@ -291,6 +313,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("sessions.anonymous")) {
                 getContextState(result, context);
                 out.println(result.getSessionsAnonymous());
+            }
+            else if (var.equals("sopraPool.maxObjet")) {
+                getContextState(result, context);
+                out.println(result.getSopraPoolMaxObjet());
+            }
+            else if (var.equals("sopraPool.objetUtilisees")) {
+                getContextState(result, context);
+                out.println(result.getSopraPoolObjetUtilisees());
             }
             else if (var.equals("c3p0.maxPoolSize")) {
                 getC3p0State(result, context);
@@ -430,11 +460,40 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             Context context = (Context)children[i];
             if (context.getPath().equals(internalContextPath)) {
                 getSessionsState(result, context);
+                getSopraPoolState(result, context);
                 return;
             }
         }
         
         throw new IllegalArgumentException("Unknown context : " + contextPath);
+    }
+
+    private void getSopraPoolState(Result result, Context context) {
+        try {
+            ClassLoader loader = context.getLoader().getClassLoader();
+            Class poolManagerClass = loader.loadClass("com.sopragroup.fwk.util.pool.PoolManager");
+
+            Method getInstance = poolManagerClass.getMethod("getInstance");
+            Object poolManager = getInstance.invoke(null);
+
+            Method getNomPoolDefaut = poolManager.getClass().getMethod("getNomPoolDefaut");
+            String nomPoolDefaut = (String)getNomPoolDefaut.invoke(poolManager);
+
+            Method donnerPool = poolManager.getClass().getDeclaredMethod("donnerPool", String.class);
+            donnerPool.setAccessible(true);
+            Object poolConnection = donnerPool.invoke(poolManager, nomPoolDefaut);
+
+            Field fieldMaxObjet = poolConnection.getClass().getSuperclass().getDeclaredField("m_nbMaxObjet");
+            fieldMaxObjet.setAccessible(true);
+            result.setSopraPoolMaxObjet(fieldMaxObjet.getInt(poolConnection));
+
+            Field fieldObjetUtilisees = poolConnection.getClass().getSuperclass().getDeclaredField("m_nbObjetUtilisees");
+            fieldObjetUtilisees.setAccessible(true);
+            result.setSopraPoolObjetUtilisees(fieldObjetUtilisees.getInt(poolConnection));
+        }
+        catch (Exception e) {
+            // Ignorer
+        }
     }
 
     private void getSessionsState(Result result, Context context) {
