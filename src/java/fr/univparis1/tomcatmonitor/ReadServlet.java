@@ -332,7 +332,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getThreadsState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "*:type=RequestProcessor,worker=jk-*,*";
+            String onStr = "*:type=RequestProcessor,worker=\"ajp-*\",*";
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
@@ -361,7 +361,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getGlobalRequestProcessorState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "*:type=GlobalRequestProcessor,name=jk-*,*";
+            String onStr = "*:type=GlobalRequestProcessor,name=\"ajp-*\"";
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
