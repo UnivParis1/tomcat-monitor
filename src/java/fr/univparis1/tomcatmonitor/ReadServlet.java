@@ -45,10 +45,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private long memoryTotal = 0;
         private long memoryMax = 0;
         private int threadsMax = 0;
+        private int threadsTotal = 0;
         private int threadsService = 0;
         private int threadsKeepalive = 0;
         private int threadsReady = 0;
-        private int threadsTotal = 0;
         private int requestsTotal = 0;
         private int requestsError = 0;
         private int sessionsTotal = 0;
@@ -95,6 +95,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             this.threadsMax = threadsMax;
         }
 
+        public int getThreadsTotal() {
+            return threadsTotal;
+        }
+
+        public void addThreadsTotal() {
+            threadsTotal++;
+        }
+
         public int getThreadsService() {
             return threadsService;
         }
@@ -117,14 +125,6 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public void addThreadsReady() {
             threadsReady++;
-        }
-
-        public int getThreadsTotal() {
-            return threadsTotal;
-        }
-
-        public void addThreadsTotal() {
-            threadsTotal++;
         }
 
         public int getThreadsOther() {
