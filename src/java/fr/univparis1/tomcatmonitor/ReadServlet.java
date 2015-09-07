@@ -48,6 +48,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int threadsTotal = 0;
         private int threadsService = 0;
         private int threadsKeepalive = 0;
+        private int threadsOther = 0;
         private int threadsReady = 0;
         private int requestsTotal = 0;
         private int requestsError = 0;
@@ -119,16 +120,20 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             threadsKeepalive++;
         }
 
+        public int getThreadsOther() {
+            return threadsOther;
+        }
+
+        public void addThreadsOther() {
+            threadsOther++;
+        }
+
         public int getThreadsReady() {
             return threadsReady;
         }
 
         public void addThreadsReady() {
             threadsReady++;
-        }
-
-        public int getThreadsOther() {
-            return threadsTotal - threadsReady - threadsService - threadsKeepalive;
         }
 
         public int getRequestsTotal() {
@@ -440,6 +445,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
                     case (7/*org.apache.coyote.Constants.STAGE_ENDED*/):
                         result.addThreadsReady();
+                        break;
+
+                    default:
+                        result.addThreadsOther();
                         break;
                 }
             }
