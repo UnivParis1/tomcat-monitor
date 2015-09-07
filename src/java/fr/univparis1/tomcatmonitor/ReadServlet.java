@@ -14,6 +14,8 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
+import javax.management.Query;
+import javax.management.QueryExp;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +44,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private long memoryFree = 0;
         private long memoryTotal = 0;
         private long memoryMax = 0;
+        private int threadsMax = 0;
         private int threadsService = 0;
         private int threadsKeepalive = 0;
         private int threadsTotal = 0;
@@ -81,6 +84,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public void setMemoryMax(long memoryMax) {
             this.memoryMax = memoryMax;
+        }
+
+        public int getThreadsMax() {
+            return threadsMax;
+        }
+
+        public void setThreadsMax(int threadsMax) {
+            this.threadsMax = threadsMax;
         }
 
         public int getThreadsService() {
@@ -233,6 +244,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 out.println("memory.free=" + result.getMemoryFree());
                 out.println("memory.max=" + result.getMemoryMax());
 
+                getConnectorState(result);
+                out.println("threads.max=" + result.getThreadsMax());
+
                 getThreadsState(result);
                 out.println("threads.total=" + result.getThreadsTotal());
                 out.println("threads.service=" + result.getThreadsService());
@@ -273,6 +287,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("memory.max")) {
                 getMemoryState(result);
                 out.println(result.getMemoryMax());
+            }
+            else if (var.equals("threads.max")) {
+                getConnectorState(result);
+                out.println(result.getThreadsMax());
             }
             else if (var.equals("threads.total")) {
                 getThreadsState(result);
@@ -357,6 +375,25 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         result.setMemoryTotal(runtime.totalMemory());
         result.setMemoryFree(runtime.freeMemory());
         result.setMemoryMax(runtime.maxMemory());
+    }
+
+    private void getConnectorState(Result result) {
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            ObjectName objectName = new ObjectName("Catalina:type=Connector,*");
+            QueryExp query = Query.eq(Query.attr("protocol"), Query.value("AJP/1.3"));
+            Set set = mBeanServer.queryMBeans(objectName, query);
+            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = (ObjectInstance) iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                Integer maxThreadsValue = (Integer)mBeanServer.getAttribute(rpName, "maxThreads");
+                int maxThreads = maxThreadsValue.intValue();
+                result.setThreadsMax(maxThreads);
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void getThreadsState(Result result) {
