@@ -47,6 +47,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int threadsMax = 0;
         private int threadsService = 0;
         private int threadsKeepalive = 0;
+        private int threadsReady = 0;
         private int threadsTotal = 0;
         private int requestsTotal = 0;
         private int requestsError = 0;
@@ -110,6 +111,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             threadsKeepalive++;
         }
 
+        public int getThreadsReady() {
+            return threadsReady;
+        }
+
+        public void addThreadsReady() {
+            threadsReady++;
+        }
+
         public int getThreadsTotal() {
             return threadsTotal;
         }
@@ -119,7 +128,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         }
 
         public int getThreadsOther() {
-            return threadsTotal - threadsService - threadsKeepalive;
+            return threadsTotal - threadsReady - threadsService - threadsKeepalive;
         }
 
         public int getRequestsTotal() {
@@ -252,6 +261,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 out.println("threads.service=" + result.getThreadsService());
                 out.println("threads.keepalive=" + result.getThreadsKeepalive());
                 out.println("threads.other=" + result.getThreadsOther());
+                out.println("threads.ready=" + result.getThreadsReady());
 
                 getGlobalRequestProcessorState(result);
                 out.println("requests.total=" + result.getRequestsTotal());
@@ -307,6 +317,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("threads.other")) {
                 getThreadsState(result);
                 out.println(result.getThreadsOther());
+            }
+            else if (var.equals("threads.ready")) {
+                getThreadsState(result);
+                out.println(result.getThreadsReady());
             }
             else if (var.equals("requests.total")) {
                 getGlobalRequestProcessorState(result);
@@ -407,7 +421,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectName rpName = oi.getObjectName();
                 
                 result.addThreadsTotal();
-                
+
+                // Voir conversion stage/état dans org.apache.catalina.manager.StatusTransformer.writeProcessorState()
                 Integer stageValue = (Integer)mBeanServer.getAttribute(rpName, "stage");
                 int stage = stageValue.intValue();
                 switch (stage) {
@@ -417,6 +432,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
                     case (6/*org.apache.coyote.Constants.STAGE_KEEPALIVE*/):
                         result.addThreadsKeepalive();
+                        break;
+
+                    case (0/*org.apache.coyote.Constants.STAGE_NEW*/):
+                        result.addThreadsReady();
+                        break;
+
+                    case (7/*org.apache.coyote.Constants.STAGE_ENDED*/):
+                        result.addThreadsReady();
                         break;
                 }
             }
