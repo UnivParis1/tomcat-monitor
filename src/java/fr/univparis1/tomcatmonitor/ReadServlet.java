@@ -41,9 +41,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     
     private static class Result {
         // Memory
-        private long memoryFree = 0;
-        private long memoryTotal = 0;
         private long memoryMax = 0;
+        private long memoryTotal = 0;
+        private long memoryFree = 0;
         private int threadsMax = 0;
         private int threadsTotal = 0;
         private int threadsService = 0;
@@ -60,12 +60,12 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int sopraPoolMaxObjet = 0;
         private int sopraPoolObjetUtilisees = 0;
 
-        public long getMemoryFree() {
-            return memoryFree;
+        public long getMemoryMax() {
+            return memoryMax;
         }
 
-        public void setMemoryFree(long memoryFree) {
-            this.memoryFree = memoryFree;
+        public void setMemoryMax(long memoryMax) {
+            this.memoryMax = memoryMax;
         }
 
         public long getMemoryTotal() {
@@ -76,16 +76,16 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             this.memoryTotal = memoryTotal;
         }
 
+        public long getMemoryFree() {
+            return memoryFree;
+        }
+
+        public void setMemoryFree(long memoryFree) {
+            this.memoryFree = memoryFree;
+        }
+
         public long getMemoryUsed() {
             return memoryTotal - memoryFree;
-        }
-
-        public long getMemoryMax() {
-            return memoryMax;
-        }
-
-        public void setMemoryMax(long memoryMax) {
-            this.memoryMax = memoryMax;
         }
 
         public int getThreadsMax() {
@@ -253,10 +253,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             String context = request.getParameter("context");
             if (var == null) {
                 getMemoryState(result);
+                out.println("memory.max=" + result.getMemoryMax());
                 out.println("memory.total=" + result.getMemoryTotal());
                 out.println("memory.used=" + result.getMemoryUsed());
                 out.println("memory.free=" + result.getMemoryFree());
-                out.println("memory.max=" + result.getMemoryMax());
 
                 getConnectorState(result);
                 out.println("threads.max=" + result.getThreadsMax());
@@ -287,6 +287,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("c3p0.numBusyConnections=" + result.getC3p0NumBusyConnections());
                 }
             }
+            else if (var.equals("memory.max")) {
+                getMemoryState(result);
+                out.println(result.getMemoryMax());
+            }
             else if (var.equals("memory.total")) {
                 getMemoryState(result);
                 out.println(result.getMemoryTotal());
@@ -298,10 +302,6 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("memory.free")) {
                 getMemoryState(result);
                 out.println(result.getMemoryFree());
-            }
-            else if (var.equals("memory.max")) {
-                getMemoryState(result);
-                out.println(result.getMemoryMax());
             }
             else if (var.equals("threads.max")) {
                 getConnectorState(result);
@@ -391,9 +391,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     
     private void getMemoryState(Result result) {
         Runtime runtime = Runtime.getRuntime();
+        result.setMemoryMax(runtime.maxMemory());
         result.setMemoryTotal(runtime.totalMemory());
         result.setMemoryFree(runtime.freeMemory());
-        result.setMemoryMax(runtime.maxMemory());
     }
 
     private void getConnectorState(Result result) {
