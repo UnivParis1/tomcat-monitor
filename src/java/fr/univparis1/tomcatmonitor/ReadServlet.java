@@ -10,12 +10,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Set;
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
+import javax.management.MBeanException;
 import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.Query;
 import javax.management.QueryExp;
+import javax.management.ReflectionException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -405,6 +409,18 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         result.setMemoryFree(runtime.freeMemory());
     }
 
+    private static int getIntValue(MBeanServer mBeanServer, ObjectName name, String attribute, int defaultValue) throws MBeanException, AttributeNotFoundException, InstanceNotFoundException, ReflectionException {
+        Object value = mBeanServer.getAttribute(name, attribute);
+        if (value == null)
+            return defaultValue;
+        else if (value instanceof Integer)
+            return ((Integer)value).intValue();
+        else if (value instanceof String)
+            return Integer.parseInt((String)value);
+        else
+            throw new RuntimeException("Invalid type: " + value.getClass().getName());
+    }
+
     private void getConnectorState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
@@ -415,8 +431,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
-                Integer maxThreadsValue = (Integer)mBeanServer.getAttribute(rpName, "maxThreads");
-                int maxThreads = maxThreadsValue.intValue();
+                // Avec Tomcat 6.0.32 la valeur est de type String
+                // De plus la propriété vaut null si l'attribut maxThreads n'est pas explicitement défini dans server.xml
+                int maxThreads = getIntValue(mBeanServer, rpName, "maxThreads", 0);
                 result.setThreadsMax(maxThreads);
             }
         } catch (JMException e) {
@@ -427,9 +444,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getThreadsState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "*:type=RequestProcessor,worker=\"ajp-*\",*";
+            String onStr = "Catalina:type=RequestProcessor,worker=\"ajp-*\",*"; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
+            if (set.isEmpty()) {
+                onStr = "Catalina:type=RequestProcessor,worker=jk-*,*"; // Tomcat 6
+                objectName = new ObjectName(onStr);
+                set = mBeanServer.queryMBeans(objectName, null);
+            }
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
@@ -469,9 +491,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getGlobalRequestProcessorState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "*:type=GlobalRequestProcessor,name=\"ajp-*\"";
+            String onStr = "Catalina:type=GlobalRequestProcessor,name=\"ajp-*\""; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
+            if (set.isEmpty()) {
+                onStr = "Catalina:type=GlobalRequestProcessor,name=jk-*";  // Tomcat 6
+                objectName = new ObjectName(onStr);
+                set = mBeanServer.queryMBeans(objectName, null);
+            }
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
