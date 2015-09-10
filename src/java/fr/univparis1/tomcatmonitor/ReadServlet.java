@@ -200,6 +200,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             this.c3p0NumBusyConnections = c3p0NumBusyConnections;
         }
 
+        public int getC3p0NumIdleConnections() {
+            return c3p0NumConnections - c3p0NumBusyConnections;
+        }
+
         public int getSopraPoolMaxObjet() {
             return sopraPoolMaxObjet;
         }
@@ -285,6 +289,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("c3p0.maxPoolSize=" + result.getC3p0MaxPoolSize());
                     out.println("c3p0.numConnections=" + result.getC3p0NumConnections());
                     out.println("c3p0.numBusyConnections=" + result.getC3p0NumBusyConnections());
+                    out.println("c3p0.numIdleConnections=" + result.getC3p0NumIdleConnections());
                 }
             }
             else if (var.equals("memory.max")) {
@@ -370,6 +375,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("c3p0.numBusyConnections")) {
                 getC3p0State(result, context);
                 out.println(result.getC3p0NumBusyConnections());
+            }
+            else if (var.equals("c3p0.numIdleConnections")) {
+                getC3p0State(result, context);
+                out.println(result.getC3p0NumIdleConnections());
             }
             else {
                 throw new IllegalArgumentException("Unknown variable: " + var);
