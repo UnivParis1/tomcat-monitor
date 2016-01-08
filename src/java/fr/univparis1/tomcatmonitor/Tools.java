@@ -40,6 +40,17 @@ public class Tools {
                 Object authentication = getAuthentication.invoke(securityContext);
                 // org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 
+                Method getPrincipal = authentication.getClass().getMethod("getPrincipal");
+                Object principal = getPrincipal.invoke(authentication);
+                if (principal.getClass().getName().equals("gouv.education.apogee.commun.transverse.dto.security.UserDTO")) {
+                    // Application AMUE SNW :
+                    // authentication.getName() renvoie le numéro Harpège,
+                    // donc utiliser plutôt authentication.getPrincipal().getUid()
+                    Method getUid = principal.getClass().getMethod("getUid");
+                    String uid = (String)getUid.invoke(principal);
+                    return uid;
+                }
+
                 Method getName = authentication.getClass().getMethod("getName");
                 String name = (String)getName.invoke(authentication);
                     return name;
