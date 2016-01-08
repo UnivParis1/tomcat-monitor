@@ -32,6 +32,19 @@ public class Tools {
                 return name;
             }
 
+            // Spring Security
+            Object securityContext = httpSession.getAttribute("SPRING_SECURITY_CONTEXT");
+            // class org.springframework.security.core.context.SecurityContextImpl
+            if (securityContext != null) {
+                Method getAuthentication = securityContext.getClass().getMethod("getAuthentication");
+                Object authentication = getAuthentication.invoke(securityContext);
+                // org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+
+                Method getName = authentication.getClass().getMethod("getName");
+                String name = (String)getName.invoke(authentication);
+                    return name;
+            }
+
             return null;
         }
         catch (Exception e) {
