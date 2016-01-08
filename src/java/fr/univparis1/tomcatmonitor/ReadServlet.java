@@ -247,12 +247,6 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Lire l'heure une fois seulement
-        long now = System.currentTimeMillis();
-
-        // Créer une session pour les tests
-        request.getSession();
-
         response.setContentType("text/plain;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {

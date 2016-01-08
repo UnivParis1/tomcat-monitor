@@ -62,9 +62,6 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         // Lire l'heure une fois seulement
         long now = System.currentTimeMillis();
 
-        // Créer une session pour les tests
-        request.getSession();
-
         response.setContentType("text/plain;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
