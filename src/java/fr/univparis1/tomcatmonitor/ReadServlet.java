@@ -63,6 +63,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int c3p0NumBusyConnections = 0;
         private int sopraPoolMaxObjet = 0;
         private int sopraPoolObjetUtilisees = 0;
+        private int dbcpMaxActive = 0;
+        private int dbcpNumActive = 0;
+        private int dbcpMaxIdle = 0;
+        private int dbcpNumIdle = 0;
+        private int dbcpMinIdle = 0;
 
         public long getMemoryMax() {
             return memoryMax;
@@ -223,6 +228,46 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         public void setSopraPoolObjetUtilisees(int sopraPoolObjetUtilisees) {
             this.sopraPoolObjetUtilisees = sopraPoolObjetUtilisees;
         }
+
+        public int getDbcpMaxActive() {
+            return dbcpMaxActive;
+        }
+
+        public void setDbcpMaxActive(int dbcpMaxActive) {
+            this.dbcpMaxActive = dbcpMaxActive;
+        }
+
+        public int getDbcpNumActive() {
+            return dbcpNumActive;
+        }
+
+        public void setDbcpNumActive(int dbcpNumActive) {
+            this.dbcpNumActive = dbcpNumActive;
+        }
+
+        public int getDbcpMaxIdle() {
+            return dbcpMaxIdle;
+        }
+
+        public void setDbcpMaxIdle(int dbcpMaxIdle) {
+            this.dbcpMaxIdle = dbcpMaxIdle;
+        }
+
+        public int getDbcpNumIdle() {
+            return dbcpNumIdle;
+        }
+
+        public void setDbcpNumIdle(int dbcpNumIdle) {
+            this.dbcpNumIdle = dbcpNumIdle;
+        }
+
+        public int getDbcpMinIdle() {
+            return dbcpMinIdle;
+        }
+
+        public void setDbcpMinIdle(int dbcpMinIdle) {
+            this.dbcpMinIdle = dbcpMinIdle;
+        }
     }
 
     @Override
@@ -288,6 +333,13 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("c3p0.numConnections=" + result.getC3p0NumConnections());
                     out.println("c3p0.numBusyConnections=" + result.getC3p0NumBusyConnections());
                     out.println("c3p0.numIdleConnections=" + result.getC3p0NumIdleConnections());
+
+                    getDbcpState(result, context);
+                    out.println("dbcp.maxActive=" + result.getDbcpMaxActive());
+                    out.println("dbcp.numActive=" + result.getDbcpNumActive());
+                    out.println("dbcp.maxIdle=" + result.getDbcpMaxIdle());
+                    out.println("dbcp.numIdle=" + result.getDbcpNumIdle());
+                    out.println("dbcp.minIdle=" + result.getDbcpMinIdle());
                 }
             }
             else if (var.equals("memory.max")) {
@@ -377,6 +429,26 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("c3p0.numIdleConnections")) {
                 getC3p0State(result, context);
                 out.println(result.getC3p0NumIdleConnections());
+            }
+            else if (var.equals("dbcp.maxActive")) {
+                getDbcpState(result, context);
+                out.println(result.getDbcpMaxActive());
+            }
+            else if (var.equals("dbcp.numActive")) {
+                getDbcpState(result, context);
+                out.println(result.getDbcpNumActive());
+            }
+            else if (var.equals("dbcp.maxIdle")) {
+                getDbcpState(result, context);
+                out.println(result.getDbcpMaxIdle());
+            }
+            else if (var.equals("dbcp.numIdle")) {
+                getDbcpState(result, context);
+                out.println(result.getDbcpNumIdle());
+            }
+            else if (var.equals("dbcp.minIdle")) {
+                getDbcpState(result, context);
+                out.println(result.getDbcpMinIdle());
             }
             else {
                 throw new IllegalArgumentException("Unknown variable: " + var);
@@ -538,6 +610,34 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 result.setC3p0NumBusyConnections(((Integer)mBeanServer.getAttribute(rpName, "numBusyConnections")));
                 
                 found = true;
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void getDbcpState(Result result, String contextPath) {
+        if (contextPath == null)
+            throw new IllegalArgumentException("Missing argument: context");
+
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            String onStr = "Catalina:type=DataSource,context=" + contextPath + ",*";
+            ObjectName objectName = new ObjectName(onStr);
+            Set set = mBeanServer.queryMBeans(objectName, null);
+            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = (ObjectInstance) iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                result.setDbcpMaxActive(((Integer)mBeanServer.getAttribute(rpName, "maxActive")).intValue());
+                result.setDbcpNumActive(((Integer)mBeanServer.getAttribute(rpName, "numActive")).intValue());
+                result.setDbcpMaxIdle(((Integer)mBeanServer.getAttribute(rpName, "maxIdle")).intValue());
+                result.setDbcpNumIdle(((Integer)mBeanServer.getAttribute(rpName, "numIdle")).intValue());
+                result.setDbcpMinIdle(((Integer)mBeanServer.getAttribute(rpName, "minIdle")).intValue());
+
+                // On ne supporte qu'un seul pool DBCP par contexte
+                if (iterator.hasNext())
+                    throw new RuntimeException("Plusieurs pools DBCP sur le contexte " + contextPath + ".");
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
