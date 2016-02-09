@@ -586,7 +586,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             throw new IllegalArgumentException("Missing argument: context");
 
         String contextDataSourceName = contextPath.substring(1);
-        boolean found = false;
+        long minimumUpTimeMillisDefaultUser = Long.MAX_VALUE;
 
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
@@ -601,15 +601,18 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 if (!dataSourceName.equals(contextDataSourceName))
                     continue;
 
-                // S'il y a plusieurs PooledDataSource avec le même dataSourceName, on ne sait pas laquelle choisir...
-                if (found)
-                    throw new RuntimeException("Plusieurs PooledDataSource avec dataSourceName=\"" + contextDataSourceName + "\".");
-
-                result.setC3p0MaxPoolSize(((Integer)mBeanServer.getAttribute(rpName, "maxPoolSize")));
-                result.setC3p0NumConnections(((Integer)mBeanServer.getAttribute(rpName, "numConnections")));
-                result.setC3p0NumBusyConnections(((Integer)mBeanServer.getAttribute(rpName, "numBusyConnections")));
-                
-                found = true;
+                // Contourner le bug des web services Harpège 6.5.0-1 :
+                // Il y a deux dataSource de même nom à cause d'une mauvaise utilisation de Spring.
+                // L'une est créée lors du chargement de la webapp,
+                // l'autre est créée lors de la première utilisation du web service.
+                // Dans ce cas, on ne prend en compte que la dataSource la plus jeune.
+                long upTimeMillisDefaultUser = (Long)mBeanServer.getAttribute(rpName, "upTimeMillisDefaultUser");
+                if (upTimeMillisDefaultUser < minimumUpTimeMillisDefaultUser) {
+                    minimumUpTimeMillisDefaultUser = upTimeMillisDefaultUser;
+                    result.setC3p0MaxPoolSize(((Integer)mBeanServer.getAttribute(rpName, "maxPoolSize")));
+                    result.setC3p0NumConnections(((Integer)mBeanServer.getAttribute(rpName, "numConnections")));
+                    result.setC3p0NumBusyConnections(((Integer)mBeanServer.getAttribute(rpName, "numBusyConnections")));
+                }
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
