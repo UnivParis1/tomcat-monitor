@@ -229,6 +229,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             this.sopraPoolObjetUtilisees = sopraPoolObjetUtilisees;
         }
 
+        public int getSopraPoolNumIdleConnections() {
+            return sopraPoolMaxObjet - sopraPoolObjetUtilisees;
+        }
+
         public int getDbcpMaxActive() {
             return dbcpMaxActive;
         }
@@ -326,6 +330,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("sessions.authenticated=" + result.getSessionsAuthenticated());
                     out.println("sessions.anonymous=" + result.getSessionsAnonymous());
                     out.println("sopraPool.maxObjet=" + result.getSopraPoolMaxObjet());
+                    out.println("sopraPool.numIdleConnections=" + result.getSopraPoolNumIdleConnections());
                     out.println("sopraPool.objetUtilisees=" + result.getSopraPoolObjetUtilisees());
 
                     getC3p0State(result, context);
@@ -409,6 +414,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("sopraPool.maxObjet")) {
                 getContextState(result, context);
                 out.println(result.getSopraPoolMaxObjet());
+            }
+            else if (var.equals("sopraPool.numIdleConnections")) {
+                getContextState(result, context);
+                out.println(result.getSopraPoolNumIdleConnections());
             }
             else if (var.equals("sopraPool.objetUtilisees")) {
                 getContextState(result, context);
