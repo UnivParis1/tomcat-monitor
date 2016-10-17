@@ -641,6 +641,12 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
+                String name = rpName.getKeyProperty("name");
+                if (name.equals("\"jdbc/dbSiScol\"")) {
+                    // VERRUE : ignorer le pool Apogée d'eCandidat
+                    continue;
+                }
+
                 result.setDbcpMaxActive(((Integer)mBeanServer.getAttribute(rpName, "maxActive")).intValue());
                 result.setDbcpNumActive(((Integer)mBeanServer.getAttribute(rpName, "numActive")).intValue());
                 result.setDbcpMaxIdle(((Integer)mBeanServer.getAttribute(rpName, "maxIdle")).intValue());
