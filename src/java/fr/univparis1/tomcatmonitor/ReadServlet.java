@@ -54,8 +54,16 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int threadsKeepalive = 0;
         private int threadsOther = 0;
         private int threadsReady = 0;
+        private int threadsHttpMax = 0;
+        private int threadsHttpTotal = 0;
+        private int threadsHttpService = 0;
+        private int threadsHttpKeepalive = 0;
+        private int threadsHttpOther = 0;
+        private int threadsHttpReady = 0;
         private int requestsTotal = 0;
         private int requestsError = 0;
+        private int requestsHttpTotal = 0;
+        private int requestsHttpError = 0;
         private int sessionsTotal = 0;
         private int sessionsAuthenticated = 0;
         private int c3p0MaxPoolSize = 0;
@@ -145,6 +153,54 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             threadsReady++;
         }
 
+        public int getThreadsHttpMax() {
+            return threadsHttpMax;
+        }
+
+        public void setThreadsHttpMax(int threadsHttpMax) {
+            this.threadsHttpMax = threadsHttpMax;
+        }
+
+        public int getThreadsHttpTotal() {
+            return threadsHttpTotal;
+        }
+
+        public void addThreadsHttpTotal() {
+            threadsHttpTotal++;
+        }
+
+        public int getThreadsHttpService() {
+            return threadsHttpService;
+        }
+
+        public void addThreadsHttpService() {
+            threadsHttpService++;
+        }
+
+        public int getThreadsHttpKeepalive() {
+            return threadsHttpKeepalive;
+        }
+
+        public void addThreadsHttpKeepalive() {
+            threadsHttpKeepalive++;
+        }
+
+        public int getThreadsHttpOther() {
+            return threadsHttpOther;
+        }
+
+        public void addThreadsHttpOther() {
+            threadsHttpOther++;
+        }
+
+        public int getThreadsHttpReady() {
+            return threadsHttpReady;
+        }
+
+        public void addThreadsHttpReady() {
+            threadsHttpReady++;
+        }
+
         public int getRequestsTotal() {
             return requestsTotal;
         }
@@ -163,6 +219,26 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public int getRequestsSuccessful() {
             return requestsTotal - requestsError;
+        }
+
+        public int getRequestsHttpTotal() {
+            return requestsHttpTotal;
+        }
+
+        public void setRequestsHttpTotal(int requestsHttpTotal) {
+            this.requestsHttpTotal = requestsHttpTotal;
+        }
+
+        public int getRequestsHttpError() {
+            return requestsHttpError;
+        }
+
+        public void setRequestsHttpError(int requestsHttpError) {
+            this.requestsHttpError = requestsHttpError;
+        }
+
+        public int getRequestsHttpSuccessful() {
+            return requestsHttpTotal - requestsHttpError;
         }
 
         public int getSessionsTotal() {
@@ -319,10 +395,25 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 out.println("threads.other=" + result.getThreadsOther());
                 out.println("threads.ready=" + result.getThreadsReady());
 
+                getConnectorStateHttp(result);
+                out.println("threads.http.max=" + result.getThreadsHttpMax());
+
+                getThreadsStateHttp(result);
+                out.println("threads.http.total=" + result.getThreadsHttpTotal());
+                out.println("threads.http.service=" + result.getThreadsHttpService());
+                out.println("threads.http.keepalive=" + result.getThreadsHttpKeepalive());
+                out.println("threads.http.other=" + result.getThreadsHttpOther());
+                out.println("threads.http.ready=" + result.getThreadsHttpReady());
+
                 getGlobalRequestProcessorState(result);
                 out.println("requests.total=" + result.getRequestsTotal());
                 out.println("requests.error=" + result.getRequestsError());
                 out.println("requests.successful=" + result.getRequestsSuccessful());
+
+                getGlobalRequestProcessorStateHttp(result);
+                out.println("requests.http.total=" + result.getRequestsHttpTotal());
+                out.println("requests.http.error=" + result.getRequestsHttpError());
+                out.println("requests.http.successful=" + result.getRequestsHttpSuccessful());
 
                 if (context != null) {
                     getContextState(result, context);
@@ -387,6 +478,30 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 getThreadsState(result);
                 out.println(result.getThreadsReady());
             }
+            else if (var.equals("threads.http.max")) {
+                getConnectorStateHttp(result);
+                out.println(result.getThreadsHttpMax());
+            }
+            else if (var.equals("threads.http.total")) {
+                getThreadsStateHttp(result);
+                out.println(result.getThreadsHttpTotal());
+            }
+            else if (var.equals("threads.http.service")) {
+                getThreadsStateHttp(result);
+                out.println(result.getThreadsHttpService());
+            }
+            else if (var.equals("threads.http.keepalive")) {
+                getThreadsStateHttp(result);
+                out.println(result.getThreadsHttpKeepalive());
+            }
+            else if (var.equals("threads.http.other")) {
+                getThreadsStateHttp(result);
+                out.println(result.getThreadsHttpOther());
+            }
+            else if (var.equals("threads.http.ready")) {
+                getThreadsStateHttp(result);
+                out.println(result.getThreadsHttpReady());
+            }
             else if (var.equals("requests.total")) {
                 getGlobalRequestProcessorState(result);
                 out.println(result.getRequestsTotal());
@@ -398,6 +513,18 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("requests.successful")) {
                 getGlobalRequestProcessorState(result);
                 out.println(result.getRequestsSuccessful());
+            }
+            else if (var.equals("requests.http.total")) {
+                getGlobalRequestProcessorStateHttp(result);
+                out.println(result.getRequestsHttpTotal());
+            }
+            else if (var.equals("requests.http.error")) {
+                getGlobalRequestProcessorStateHttp(result);
+                out.println(result.getRequestsHttpError());
+            }
+            else if (var.equals("requests.http.successful")) {
+                getGlobalRequestProcessorStateHttp(result);
+                out.println(result.getRequestsHttpSuccessful());
             }
             else if (var.equals("sessions.total")) {
                 getContextState(result, context);
@@ -516,6 +643,26 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         }
     }
 
+    private void getConnectorStateHttp(Result result) {
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            ObjectName objectName = new ObjectName("Catalina:type=Connector,*");
+            QueryExp query = Query.eq(Query.attr("protocol"), Query.value("HTTP/1.1"));
+            Set set = mBeanServer.queryMBeans(objectName, query);
+            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = (ObjectInstance) iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                // Avec Tomcat 6.0.32 la valeur est de type String
+                // De plus la propriété vaut null si l'attribut maxThreads n'est pas explicitement défini dans server.xml
+                int maxThreads = getIntValue(mBeanServer, rpName, "maxThreads", 0);
+                result.setThreadsHttpMax(maxThreads);
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void getThreadsState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
@@ -563,6 +710,48 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         }
     }
 
+    private void getThreadsStateHttp(Result result) {
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            String onStr = "Catalina:type=RequestProcessor,worker=\"http-*\",*";
+            ObjectName objectName = new ObjectName(onStr);
+            Set set = mBeanServer.queryMBeans(objectName, null);
+            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = (ObjectInstance) iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                result.addThreadsHttpTotal();
+
+                // Voir conversion stage/état dans org.apache.catalina.manager.StatusTransformer.writeProcessorState()
+                Integer stageValue = (Integer)mBeanServer.getAttribute(rpName, "stage");
+                int stage = stageValue.intValue();
+                switch (stage) {
+                    case (3/*org.apache.coyote.Constants.STAGE_SERVICE*/):
+                        result.addThreadsHttpService();
+                        break;
+
+                    case (6/*org.apache.coyote.Constants.STAGE_KEEPALIVE*/):
+                        result.addThreadsHttpKeepalive();
+                        break;
+
+                    case (0/*org.apache.coyote.Constants.STAGE_NEW*/):
+                        result.addThreadsHttpReady();
+                        break;
+
+                    case (7/*org.apache.coyote.Constants.STAGE_ENDED*/):
+                        result.addThreadsHttpReady();
+                        break;
+
+                    default:
+                        result.addThreadsHttpOther();
+                        break;
+                }
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void getGlobalRequestProcessorState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
@@ -581,6 +770,28 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 result.setRequestsTotal(((Integer)mBeanServer.getAttribute(rpName, "requestCount")).intValue());
                 result.setRequestsError(((Integer)mBeanServer.getAttribute(rpName, "errorCount")).intValue());
                 
+                // Normalement, il n'y a qu'un seul GlobalRequestProcessor par type de connecteur
+                if (iterator.hasNext())
+                    throw new RuntimeException("Plusieurs GlobalRequestProcessor: " + onStr);
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void getGlobalRequestProcessorStateHttp(Result result) {
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            String onStr = "Catalina:type=GlobalRequestProcessor,name=\"http-*\"";
+            ObjectName objectName = new ObjectName(onStr);
+            Set set = mBeanServer.queryMBeans(objectName, null);
+            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = (ObjectInstance) iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                result.setRequestsHttpTotal(((Integer)mBeanServer.getAttribute(rpName, "requestCount")).intValue());
+                result.setRequestsHttpError(((Integer)mBeanServer.getAttribute(rpName, "errorCount")).intValue());
+
                 // Normalement, il n'y a qu'un seul GlobalRequestProcessor par type de connecteur
                 if (iterator.hasNext())
                     throw new RuntimeException("Plusieurs GlobalRequestProcessor: " + onStr);
