@@ -960,7 +960,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getSopraPoolState(Result result, Context context) {
         try {
             ClassLoader loader = context.getLoader().getClassLoader();
-            Class poolManagerClass = loader.loadClass("com.sopragroup.fwk.util.pool.PoolManager");
+            Class<?> poolManagerClass = loader.loadClass("com.sopragroup.fwk.util.pool.PoolManager");
 
             Method getInstance = poolManagerClass.getMethod("getInstance");
             Object poolManager = getInstance.invoke(null);
