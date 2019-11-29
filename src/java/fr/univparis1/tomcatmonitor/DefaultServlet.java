@@ -87,7 +87,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         for (int i = 0; i < children.length; i++) {
             Context context = (Context)children[i];
 
-            if (!context.getAvailable())
+            if (!context.getState().isAvailable())
                 continue;
 
             printContextState(out, context, now);
@@ -154,9 +154,6 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         out.println("  SessionTimeout: " + context.getSessionTimeout() + " minutes");
 
         Manager manager = context.getManager();
-        //out.println("  Info: " + manager.getInfo());
-        out.println("  MaxInactiveInterval: " + manager.getMaxInactiveInterval() + " secondes");
-
         out.println("  ExpiredSessions: " + manager.getExpiredSessions());
         out.println("  MaxActive: " + manager.getMaxActive());
         out.println("  ActiveSessions: " + manager.getActiveSessions());
