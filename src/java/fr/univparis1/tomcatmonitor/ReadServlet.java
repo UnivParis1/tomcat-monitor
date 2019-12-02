@@ -871,9 +871,15 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "com.mchange.v2.c3p0:type=PooledDataSource,identityToken=*,name=" + contextDataSourceName;
+            String onStr = "com.mchange.v2.c3p0:type=PooledDataSource,identityToken=*,name=" + contextDataSourceName; // c3p0 >= 0.9.2
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
+            if (set.isEmpty()) {
+                onStr = "com.mchange.v2.c3p0:type=PooledDataSource[*]"; // c3p0 < 0.9.2
+                objectName = new ObjectName(onStr);
+                QueryExp query = Query.eq(Query.attr("dataSourceName"), Query.value(contextDataSourceName));
+                set = mBeanServer.queryMBeans(objectName, query);
+            }
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
