@@ -871,16 +871,12 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "com.mchange.v2.c3p0:type=PooledDataSource[*]";
+            String onStr = "com.mchange.v2.c3p0:type=PooledDataSource,identityToken=*,name=" + contextDataSourceName;
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
-
-                String dataSourceName = (String)mBeanServer.getAttribute(rpName, "dataSourceName");
-                if (!dataSourceName.equals(contextDataSourceName))
-                    continue;
 
                 // Contourner le bug des web services Harpège 6.5.0-1 :
                 // Il y a deux dataSource de même nom à cause d'une mauvaise utilisation de Spring.
