@@ -192,7 +192,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         // Query Global Request Processors
         try {
             // Query Thread Pools
-            String onStr = "*:type=ThreadPool,*";
+            String onStr = "*:type=ThreadPool,name=*";
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
             Iterator iterator = set.iterator();
