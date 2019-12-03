@@ -52,6 +52,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private long gcOldGenerationCollectionTime = 0;
         private long gcYoungGenerationCollectionCount = 0;
         private long gcYoungGenerationCollectionTime = 0;
+        private double processCpuLoad = 0;
         private long processFileDescriptorCountMax = 0;
         private long processFileDescriptorCountOpen = 0;
         private int threadsMax = 0;
@@ -141,6 +142,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public void setGcYoungGenerationCollectionTime(long gcYoungGenerationCollectionTime) {
             this.gcYoungGenerationCollectionTime = gcYoungGenerationCollectionTime;
+        }
+
+        public double getProcessCpuLoad() {
+            return processCpuLoad;
+        }
+
+        public void setProcessCpuLoad(double processCpuLoad) {
+            this.processCpuLoad = processCpuLoad;
         }
 
         public long getProcessFileDescriptorCountMax() {
@@ -454,6 +463,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 out.println("gc.youngGen.collectionTime=" + result.getGcYoungGenerationCollectionTime());
 
                 getOperatingSystemState(result);
+                out.println("process.cpu.load=" + result.getProcessCpuLoad());
                 out.println("process.fileDescriptorCount.max=" + result.getProcessFileDescriptorCountMax());
                 out.println("process.fileDescriptorCount.open=" + result.getProcessFileDescriptorCountOpen());
 
@@ -547,6 +557,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("gc.youngGen.collectionTime")) {
                 getGarbageCollectorState(result);
                 out.println(result.getGcYoungGenerationCollectionTime());
+            }
+            else if (var.equals("process.cpu.load")) {
+                getOperatingSystemState(result);
+                out.println(result.getProcessCpuLoad());
             }
             else if (var.equals("process.fileDescriptorCount.max")) {
                 getOperatingSystemState(result);
@@ -753,6 +767,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             for (ObjectInstance oi : set) {
                 ObjectName on = oi.getObjectName();
+                result.setProcessCpuLoad(((Double)mBeanServer.getAttribute(on, "ProcessCpuLoad")));
+
                 try {
                     result.setProcessFileDescriptorCountMax(((Long)mBeanServer.getAttribute(on, "MaxFileDescriptorCount")));
                     result.setProcessFileDescriptorCountOpen(((Long)mBeanServer.getAttribute(on, "OpenFileDescriptorCount")));
