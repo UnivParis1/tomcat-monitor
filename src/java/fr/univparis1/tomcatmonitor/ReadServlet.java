@@ -52,6 +52,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private long gcOldGenerationCollectionTime = 0;
         private long gcYoungGenerationCollectionCount = 0;
         private long gcYoungGenerationCollectionTime = 0;
+        private long processFileDescriptorCountMax = 0;
+        private long processFileDescriptorCountOpen = 0;
         private int threadsMax = 0;
         private int threadsCount = 0;
         private int threadsBusy = 0;
@@ -139,6 +141,22 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public void setGcYoungGenerationCollectionTime(long gcYoungGenerationCollectionTime) {
             this.gcYoungGenerationCollectionTime = gcYoungGenerationCollectionTime;
+        }
+
+        public long getProcessFileDescriptorCountMax() {
+            return processFileDescriptorCountMax;
+        }
+
+        public void setProcessFileDescriptorCountMax(long processFileDescriptorCountMax) {
+            this.processFileDescriptorCountMax = processFileDescriptorCountMax;
+        }
+
+        public long getProcessFileDescriptorCountOpen() {
+            return processFileDescriptorCountOpen;
+        }
+
+        public void setProcessFileDescriptorCountOpen(long processFileDescriptorCountOpen) {
+            this.processFileDescriptorCountOpen = processFileDescriptorCountOpen;
         }
 
         public int getThreadsMax() {
@@ -435,6 +453,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 out.println("gc.youngGen.collectionCount=" + result.getGcYoungGenerationCollectionCount());
                 out.println("gc.youngGen.collectionTime=" + result.getGcYoungGenerationCollectionTime());
 
+                getOperatingSystemState(result);
+                out.println("process.fileDescriptorCount.max=" + result.getProcessFileDescriptorCountMax());
+                out.println("process.fileDescriptorCount.open=" + result.getProcessFileDescriptorCountOpen());
+
                 getConnectorState(result);
                 out.println("threads.max=" + result.getThreadsMax());
 
@@ -525,6 +547,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("gc.youngGen.collectionTime")) {
                 getGarbageCollectorState(result);
                 out.println(result.getGcYoungGenerationCollectionTime());
+            }
+            else if (var.equals("process.fileDescriptorCount.max")) {
+                getOperatingSystemState(result);
+                out.println(result.getProcessFileDescriptorCountMax());
+            }
+            else if (var.equals("process.fileDescriptorCount.open")) {
+                getOperatingSystemState(result);
+                out.println(result.getProcessFileDescriptorCountOpen());
             }
             else if (var.equals("threads.max")) {
                 getConnectorState(result);
@@ -710,6 +740,28 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     result.setGcYoungGenerationCollectionCount(((Long)mBeanServer.getAttribute(on, "CollectionCount")));
                     result.setGcYoungGenerationCollectionTime(((Long)mBeanServer.getAttribute(on, "CollectionTime")));
                 }
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(null, e);
+        }
+    }
+
+    private void getOperatingSystemState(Result result) {
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            ObjectName objectName = new ObjectName("java.lang:type=OperatingSystem");
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            for (ObjectInstance oi : set) {
+                ObjectName on = oi.getObjectName();
+                try {
+                    result.setProcessFileDescriptorCountMax(((Long)mBeanServer.getAttribute(on, "MaxFileDescriptorCount")));
+                    result.setProcessFileDescriptorCountOpen(((Long)mBeanServer.getAttribute(on, "OpenFileDescriptorCount")));
+                }
+                catch (AttributeNotFoundException e) {
+                    // Ignorer : Ces attribus n'existent pas sous Windows
+                }
+
+                break; // Première occurrence seulement
             }
         } catch (JMException e) {
             throw new RuntimeException(null, e);
