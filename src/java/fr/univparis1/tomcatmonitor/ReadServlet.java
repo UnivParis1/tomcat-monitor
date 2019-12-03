@@ -48,6 +48,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private long memoryMax = 0;
         private long memoryTotal = 0;
         private long memoryFree = 0;
+        private long gcOldGenerationCollectionCount = 0;
+        private long gcOldGenerationCollectionTime = 0;
+        private long gcYoungGenerationCollectionCount = 0;
+        private long gcYoungGenerationCollectionTime = 0;
         private int threadsMax = 0;
         private int threadsCount = 0;
         private int threadsBusy = 0;
@@ -103,6 +107,38 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public long getMemoryUsed() {
             return memoryTotal - memoryFree;
+        }
+
+        public long getGcOldGenerationCollectionCount() {
+            return gcOldGenerationCollectionCount;
+        }
+
+        public void setGcOldGenerationCollectionCount(long gcOldGenerationCollectionCount) {
+            this.gcOldGenerationCollectionCount = gcOldGenerationCollectionCount;
+        }
+
+        public long getGcOldGenerationCollectionTime() {
+            return gcOldGenerationCollectionTime;
+        }
+
+        public void setGcOldGenerationCollectionTime(long gcOldGenerationCollectionTime) {
+            this.gcOldGenerationCollectionTime = gcOldGenerationCollectionTime;
+        }
+
+        public long getGcYoungGenerationCollectionCount() {
+            return gcYoungGenerationCollectionCount;
+        }
+
+        public void setGcYoungGenerationCollectionCount(long gcYoungGenerationCollectionCount) {
+            this.gcYoungGenerationCollectionCount = gcYoungGenerationCollectionCount;
+        }
+
+        public long getGcYoungGenerationCollectionTime() {
+            return gcYoungGenerationCollectionTime;
+        }
+
+        public void setGcYoungGenerationCollectionTime(long gcYoungGenerationCollectionTime) {
+            this.gcYoungGenerationCollectionTime = gcYoungGenerationCollectionTime;
         }
 
         public int getThreadsMax() {
@@ -393,6 +429,12 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 out.println("memory.used=" + result.getMemoryUsed());
                 out.println("memory.free=" + result.getMemoryFree());
 
+                getGarbageCollectorState(result);
+                out.println("gc.oldGen.collectionCount=" + result.getGcOldGenerationCollectionCount());
+                out.println("gc.oldGen.collectionTime=" + result.getGcOldGenerationCollectionTime());
+                out.println("gc.youngGen.collectionCount=" + result.getGcYoungGenerationCollectionCount());
+                out.println("gc.youngGen.collectionTime=" + result.getGcYoungGenerationCollectionTime());
+
                 getConnectorState(result);
                 out.println("threads.max=" + result.getThreadsMax());
 
@@ -467,6 +509,22 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("memory.free")) {
                 getMemoryState(result);
                 out.println(result.getMemoryFree());
+            }
+            else if (var.equals("gc.oldGen.collectionCount")) {
+                getGarbageCollectorState(result);
+                out.println(result.getGcOldGenerationCollectionCount());
+            }
+            else if (var.equals("gc.oldGen.collectionTime")) {
+                getGarbageCollectorState(result);
+                out.println(result.getGcOldGenerationCollectionTime());
+            }
+            else if (var.equals("gc.youngGen.collectionCount")) {
+                getGarbageCollectorState(result);
+                out.println(result.getGcYoungGenerationCollectionCount());
+            }
+            else if (var.equals("gc.youngGen.collectionTime")) {
+                getGarbageCollectorState(result);
+                out.println(result.getGcYoungGenerationCollectionTime());
             }
             else if (var.equals("threads.max")) {
                 getConnectorState(result);
@@ -633,6 +691,29 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         result.setMemoryMax(runtime.maxMemory());
         result.setMemoryTotal(runtime.totalMemory());
         result.setMemoryFree(runtime.freeMemory());
+    }
+
+
+    private void getGarbageCollectorState(Result result) {
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+        try {
+            ObjectName objectName = new ObjectName("java.lang:type=GarbageCollector,*");
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            for (ObjectInstance oi : set) {
+                ObjectName on = oi.getObjectName();
+                String name = (String)mBeanServer.getAttribute(on, "Name");
+                if (name.equals("G1 Old Generation") || name.equals("PS MarkSweep")) {
+                    result.setGcOldGenerationCollectionCount(((Long)mBeanServer.getAttribute(on, "CollectionCount")));
+                    result.setGcOldGenerationCollectionTime(((Long)mBeanServer.getAttribute(on, "CollectionTime")));
+                }
+                else if (name.equals("G1 Young Generation") || name.equals("PS Scavenge")) {
+                    result.setGcYoungGenerationCollectionCount(((Long)mBeanServer.getAttribute(on, "CollectionCount")));
+                    result.setGcYoungGenerationCollectionTime(((Long)mBeanServer.getAttribute(on, "CollectionTime")));
+                }
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(null, e);
+        }
     }
 
     private static int getIntValue(MBeanServer mBeanServer, ObjectName name, String attribute, int defaultValue) throws MBeanException, AttributeNotFoundException, InstanceNotFoundException, ReflectionException {
