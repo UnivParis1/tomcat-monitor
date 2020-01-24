@@ -53,6 +53,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private long gcYoungGenerationCollectionCount = 0;
         private long gcYoungGenerationCollectionTime = 0;
         private double processCpuLoad = 0;
+        private double systemCpuLoad = 0;
         private long processFileDescriptorCountMax = 0;
         private long processFileDescriptorCountOpen = 0;
         private int threadsMax = 0;
@@ -150,6 +151,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         public void setProcessCpuLoad(double processCpuLoad) {
             this.processCpuLoad = processCpuLoad;
+        }
+
+        public double getSystemCpuLoad() {
+            return systemCpuLoad;
+        }
+
+        public void setSystemCpuLoad(double processCpuLoad) {
+            this.systemCpuLoad = processCpuLoad;
         }
 
         public long getProcessFileDescriptorCountMax() {
@@ -464,6 +473,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
                 getOperatingSystemState(result);
                 out.println("process.cpu.load=" + result.getProcessCpuLoad());
+                out.println("system.cpu.load=" + result.getSystemCpuLoad());
                 out.println("process.fileDescriptorCount.max=" + result.getProcessFileDescriptorCountMax());
                 out.println("process.fileDescriptorCount.open=" + result.getProcessFileDescriptorCountOpen());
 
@@ -561,6 +571,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("process.cpu.load")) {
                 getOperatingSystemState(result);
                 out.println(result.getProcessCpuLoad());
+            }
+            else if (var.equals("system.cpu.load")) {
+                getOperatingSystemState(result);
+                out.println(result.getSystemCpuLoad());
             }
             else if (var.equals("process.fileDescriptorCount.max")) {
                 getOperatingSystemState(result);
@@ -768,6 +782,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             for (ObjectInstance oi : set) {
                 ObjectName on = oi.getObjectName();
                 result.setProcessCpuLoad(((Double)mBeanServer.getAttribute(on, "ProcessCpuLoad")));
+                result.setSystemCpuLoad(((Double)mBeanServer.getAttribute(on, "SystemCpuLoad")));
 
                 try {
                     result.setProcessFileDescriptorCountMax(((Long)mBeanServer.getAttribute(on, "MaxFileDescriptorCount")));
