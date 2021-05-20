@@ -79,6 +79,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int c3p0NumBusyConnections = 0;
         private int sopraPoolMaxObjet = 0;
         private int sopraPoolObjetUtilisees = 0;
+        private int dbcpMaxTotal = 0;
         private int dbcpMaxActive = 0;
         private int dbcpNumActive = 0;
         private int dbcpMaxIdle = 0;
@@ -389,6 +390,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             return sopraPoolMaxObjet - sopraPoolObjetUtilisees;
         }
 
+        public int getDbcpMaxTotal() {
+            return dbcpMaxTotal;
+        }
+
+        public void setDbcpMaxTotal(int dbcpMaxTotal) {
+            this.dbcpMaxTotal = dbcpMaxTotal;
+        }
+
         public int getDbcpMaxActive() {
             return dbcpMaxActive;
         }
@@ -529,6 +538,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("c3p0.numIdleConnections=" + result.getC3p0NumIdleConnections());
 
                     getDbcpState(result, context);
+                    out.println("dbcp.maxTotal=" + result.getDbcpMaxTotal());
                     out.println("dbcp.maxActive=" + result.getDbcpMaxActive());
                     out.println("dbcp.numActive=" + result.getDbcpNumActive());
                     out.println("dbcp.maxIdle=" + result.getDbcpMaxIdle());
@@ -705,6 +715,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("c3p0.numIdleConnections")) {
                 getC3p0State(result, context);
                 out.println(result.getC3p0NumIdleConnections());
+            }
+            else if (var.equals("dbcp.maxTotal")) {
+                getDbcpState(result, context);
+                out.println(result.getDbcpMaxTotal());
             }
             else if (var.equals("dbcp.maxActive")) {
                 getDbcpState(result, context);
@@ -1088,6 +1102,13 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 if (name.equals("\"jdbc/dbSiScol\"")) {
                     // VERRUE : ignorer le pool Apogée d'eCandidat
                     continue;
+                }
+
+                try {
+                    result.setDbcpMaxTotal(((Integer)mBeanServer.getAttribute(rpName, "maxTotal")).intValue());
+                }
+                catch (AttributeNotFoundException e) {
+                    // Ignorer : Cet attribut n'existe pas avec DBCP 1
                 }
 
                 try {
