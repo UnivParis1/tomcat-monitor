@@ -1090,7 +1090,13 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     continue;
                 }
 
-                result.setDbcpMaxActive(((Integer)mBeanServer.getAttribute(rpName, "maxActive")).intValue());
+                try {
+                    result.setDbcpMaxActive(((Integer)mBeanServer.getAttribute(rpName, "maxActive")).intValue());
+                }
+                catch (AttributeNotFoundException e) {
+                    // Ignorer : Cet attribut n'existe pas avec DBCP 2
+                }
+
                 result.setDbcpNumActive(((Integer)mBeanServer.getAttribute(rpName, "numActive")).intValue());
                 result.setDbcpMaxIdle(((Integer)mBeanServer.getAttribute(rpName, "maxIdle")).intValue());
                 result.setDbcpNumIdle(((Integer)mBeanServer.getAttribute(rpName, "numIdle")).intValue());
