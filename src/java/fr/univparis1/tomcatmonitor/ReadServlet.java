@@ -1072,9 +1072,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=DataSource,context=" + contextPath + ",*";
+            String onStr = "Catalina:type=DataSource,host=*,context=" + contextPath + ",*"; // Tomcat 9
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
+            if (set.isEmpty()) {
+                onStr = "Catalina:type=DataSource,context=" + contextPath + ",*"; // Tomcat 7
+                objectName = new ObjectName(onStr);
+                set = mBeanServer.queryMBeans(objectName, null);
+            }
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
