@@ -1086,14 +1086,15 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=DataSource,host=*,context=" + contextPath + ",*"; // Tomcat 9
+            String onStr = "Catalina:type=DataSource,host=*,context=" + contextPath + ",class=*,name=*"; // Tomcat 9
             ObjectName objectName = new ObjectName(onStr);
             Set set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=DataSource,context=" + contextPath + ",*"; // Tomcat 7
+                onStr = "Catalina:type=DataSource,context=" + contextPath + ",host=*,class=*,name=*"; // Tomcat 7
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
+            int count = 0;
             for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = (ObjectInstance) iterator.next();
                 ObjectName rpName = oi.getObjectName();
@@ -1103,6 +1104,12 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     // VERRUE : ignorer le pool Apogée d'eCandidat
                     continue;
                 }
+
+                count++;
+
+                // On ne supporte qu'un seul pool DBCP par contexte
+                if (count > 1)
+                    throw new RuntimeException("Plusieurs pools DBCP sur le contexte " + contextPath + ".");
 
                 try {
                     result.setDbcpMaxTotal(((Integer)mBeanServer.getAttribute(rpName, "maxTotal")).intValue());
@@ -1122,10 +1129,6 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 result.setDbcpMaxIdle(((Integer)mBeanServer.getAttribute(rpName, "maxIdle")).intValue());
                 result.setDbcpNumIdle(((Integer)mBeanServer.getAttribute(rpName, "numIdle")).intValue());
                 result.setDbcpMinIdle(((Integer)mBeanServer.getAttribute(rpName, "minIdle")).intValue());
-
-                // On ne supporte qu'un seul pool DBCP par contexte
-                if (iterator.hasNext())
-                    throw new RuntimeException("Plusieurs pools DBCP sur le contexte " + contextPath + ".");
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
