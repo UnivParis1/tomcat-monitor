@@ -789,7 +789,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     result.setProcessFileDescriptorCountOpen(((Long)mBeanServer.getAttribute(on, "OpenFileDescriptorCount")));
                 }
                 catch (AttributeNotFoundException e) {
-                    // Ignorer : Ces attribus n'existent pas sous Windows
+                    // Ignorer : Ces attributs n'existent pas sous Windows
                 }
 
                 break; // Première occurrence seulement
