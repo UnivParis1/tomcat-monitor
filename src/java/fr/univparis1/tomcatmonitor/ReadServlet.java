@@ -830,9 +830,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             ObjectName objectName = new ObjectName("Catalina:type=Connector,*");
             QueryExp query = Query.eq(Query.attr("protocol"), Query.value("AJP/1.3"));
-            Set set = mBeanServer.queryMBeans(objectName, query);
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, query);
+            for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
 
                 // Avec Tomcat 6.0.32 la valeur est de type String
@@ -850,9 +849,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             ObjectName objectName = new ObjectName("Catalina:type=Connector,*");
             QueryExp query = Query.eq(Query.attr("protocol"), Query.value("HTTP/1.1"));
-            Set set = mBeanServer.queryMBeans(objectName, query);
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, query);
+            for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
 
                 // Avec Tomcat 6.0.32 la valeur est de type String
@@ -870,14 +868,13 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "Catalina:type=RequestProcessor,worker=\"ajp-*\",*"; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
                 onStr = "Catalina:type=RequestProcessor,worker=jk-*,*"; // Tomcat 6
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
                 
                 // Voir conversion stage/état dans org.apache.catalina.manager.StatusTransformer.writeProcessorState()
@@ -911,9 +908,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "Catalina:type=RequestProcessor,worker=\"http-*\",*";
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
 
                 // Voir conversion stage/état dans org.apache.catalina.manager.StatusTransformer.writeProcessorState()
@@ -947,14 +943,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "Catalina:type=GlobalRequestProcessor,name=\"ajp-*\""; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
                 onStr = "Catalina:type=GlobalRequestProcessor,name=jk-*";  // Tomcat 6
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
                 
                 result.setRequestsTotal(((Integer)mBeanServer.getAttribute(rpName, "requestCount")).intValue());
@@ -974,9 +970,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "Catalina:type=GlobalRequestProcessor,name=\"http-*\"";
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
                 result.setRequestsHttpTotal(((Integer)mBeanServer.getAttribute(rpName, "requestCount")).intValue());
@@ -996,14 +992,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "Catalina:type=ThreadPool,name=\"ajp-*\""; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
                 onStr = "Catalina:type=ThreadPool,name=jk-*";  // Tomcat 6
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
                 result.setThreadsCount(((Integer)mBeanServer.getAttribute(rpName, "currentThreadCount")).intValue());
@@ -1023,9 +1019,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "Catalina:type=ThreadPool,name=\"http-*\"";
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
                 result.setThreadsHttpCount(((Integer)mBeanServer.getAttribute(rpName, "currentThreadCount")).intValue());
@@ -1051,15 +1047,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "com.mchange.v2.c3p0:type=PooledDataSource,identityToken=*,name=" + contextDataSourceName; // c3p0 >= 0.9.2
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
                 onStr = "com.mchange.v2.c3p0:type=PooledDataSource[*]"; // c3p0 < 0.9.2
                 objectName = new ObjectName(onStr);
                 QueryExp query = Query.eq(Query.attr("dataSourceName"), Query.value(contextDataSourceName));
                 set = mBeanServer.queryMBeans(objectName, query);
             }
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
 
                 // Contourner le bug des web services Harpège 6.5.0-1 :
@@ -1088,15 +1083,14 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         try {
             String onStr = "Catalina:type=DataSource,host=*,context=" + contextPath + ",class=*,name=*"; // Tomcat 9
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
                 onStr = "Catalina:type=DataSource,context=" + contextPath + ",host=*,class=*,name=*"; // Tomcat 7
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
             int count = 0;
-            for (Iterator iterator = set.iterator(); iterator.hasNext(); ) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
 
                 String name = rpName.getKeyProperty("name");

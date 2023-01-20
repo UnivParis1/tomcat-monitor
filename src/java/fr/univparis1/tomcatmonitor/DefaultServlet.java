@@ -7,7 +7,6 @@ package fr.univparis1.tomcatmonitor;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.Set;
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -194,10 +193,8 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
             // Query Thread Pools
             String onStr = "*:type=ThreadPool,name=*";
             ObjectName objectName = new ObjectName(onStr);
-            Set set = mBeanServer.queryMBeans(objectName, null);
-            Iterator iterator = set.iterator();
-            while (iterator.hasNext()) {
-                ObjectInstance oi = (ObjectInstance) iterator.next();
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            for (ObjectInstance oi : set) {
                 printConnectorState(out, mBeanServer, oi);
             }
 
@@ -299,10 +296,8 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         // Query Request Processors
         String onStr = "*:type=RequestProcessor,worker=" + name + ",*";
         ObjectName objectName = new ObjectName(onStr);
-        Set set = mBeanServer.queryMBeans(objectName, null);
-        Iterator iterator = set.iterator();
-        while (iterator.hasNext()) {
-            ObjectInstance rpInstance = (ObjectInstance) iterator.next();
+        Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+        for (ObjectInstance rpInstance : set) {
             printRequestProcessorState(out, mBeanServer, rpInstance);
         }
 
