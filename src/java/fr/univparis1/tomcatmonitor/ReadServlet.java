@@ -42,7 +42,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private Wrapper wrapper;
     private Host host;
     private Engine engine;
-    
+
     private static class Result {
         // Memory
         private long memoryMax = 0;
@@ -753,18 +753,17 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             e.printStackTrace(out);
             //out.println(e.getClass().getName() + ": " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        } finally {            
+        } finally {
             out.close();
         }
     }
-    
+
     private void getMemoryState(Result result) {
         Runtime runtime = Runtime.getRuntime();
         result.setMemoryMax(runtime.maxMemory());
         result.setMemoryTotal(runtime.totalMemory());
         result.setMemoryFree(runtime.freeMemory());
     }
-
 
     private void getGarbageCollectorState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
@@ -876,7 +875,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             }
             for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
-                
+
                 // Voir conversion stage/état dans org.apache.catalina.manager.StatusTransformer.writeProcessorState()
                 Integer stageValue = (Integer)mBeanServer.getAttribute(rpName, "stage");
                 int stage = stageValue.intValue();
@@ -952,10 +951,10 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
-                
+
                 result.setRequestsTotal(((Integer)mBeanServer.getAttribute(rpName, "requestCount")).intValue());
                 result.setRequestsError(((Integer)mBeanServer.getAttribute(rpName, "errorCount")).intValue());
-                
+
                 // Normalement, il n'y a qu'un seul GlobalRequestProcessor par type de connecteur
                 if (iterator.hasNext())
                     throw new RuntimeException("Plusieurs GlobalRequestProcessor: " + onStr);
@@ -1148,7 +1147,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 return;
             }
         }
-        
+
         throw new IllegalArgumentException("Unknown context : " + contextPath);
     }
 

@@ -67,7 +67,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
             printTomcatState(out, now);
         } catch (Exception e) {
             e.printStackTrace(out);
-        } finally {            
+        } finally {
             out.close();
         }
     }
@@ -91,7 +91,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
 
             printContextState(out, context, now);
         }
-        
+
         printRequestProcessorState(out);
     }
 
@@ -112,7 +112,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
             out.println();
             return;
         }
-        
+
         out.println("Physical memory: " + result[0] + " octets");
         out.println("Available memory: " + result[1] + " octets");
         out.println("Total page file: " + result[2] + " octets");
@@ -123,7 +123,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
 
         out.println();
     }
-    
+
     private void printJvmState(PrintWriter out) throws ServletException, IOException {
         out.println("# JVM State");
         out.println("JVM Vendor: " + System.getProperty("java.vm.vendor"));
@@ -162,7 +162,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         for (Session session : sessions) {
             printSessionState(out, context, session, now);
         }
-        
+
         out.println();
     }
 
@@ -177,10 +177,10 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         String uid = Tools.getCasUid(session);
         if (uid != null)
             out.println("   Cas UID: " + uid);
-        
+
         out.println();
     }
-    
+
     private void printRequestProcessorState(PrintWriter out) throws ServletException, IOException {
         out.println("# Connectors");
         out.println();
@@ -272,7 +272,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
             stageStr = "?";
             fullStatus = false;
         }
-        
+
         out.println("  stage: " + stageStr);
         out.println("  protocol: " + mBeanServer.getAttribute(rpName, "protocol"));
         out.println("  method: " + mBeanServer.getAttribute(rpName, "method"));
@@ -288,11 +288,11 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         out.println(name);
 
         printThreadPoolState(out, mBeanServer, oi);
-        
+
         ObjectName grpName = new ObjectName("Catalina:type=GlobalRequestProcessor,name=" + name);
         ObjectInstance grpInstance = mBeanServer.getObjectInstance(grpName);
         printGlobalRequestProcessorState(out, mBeanServer, grpInstance);
-        
+
         // Query Request Processors
         String onStr = "*:type=RequestProcessor,worker=" + name + ",*";
         ObjectName objectName = new ObjectName(onStr);
