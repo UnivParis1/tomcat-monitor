@@ -85,6 +85,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         private int dbcpMaxIdle = 0;
         private int dbcpNumIdle = 0;
         private int dbcpMinIdle = 0;
+        private int hikariMaximumPoolSize = 0;
+        private int hikariTotalConnections = 0;
+        private int hikariActiveConnections = 0;
+        private int hikariIdleConnections = 0;
+        private int hikariMinimumIdle = 0;
 
         public long getMemoryMax() {
             return memoryMax;
@@ -437,6 +442,46 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         public void setDbcpMinIdle(int dbcpMinIdle) {
             this.dbcpMinIdle = dbcpMinIdle;
         }
+
+        public int getHikariMaximumPoolSize() {
+            return hikariMaximumPoolSize;
+        }
+
+        public void setHikariMaximumPoolSize(int hikariMaximumPoolSize) {
+            this.hikariMaximumPoolSize = hikariMaximumPoolSize;
+        }
+
+        public int getHikariTotalConnections() {
+            return hikariTotalConnections;
+        }
+
+        public void setHikariTotalConnections(int hikariTotalConnections) {
+            this.hikariTotalConnections = hikariTotalConnections;
+        }
+
+        public int getHikariActiveConnections() {
+            return hikariActiveConnections;
+        }
+
+        public void setHikariActiveConnections(int hikariActiveConnections) {
+            this.hikariActiveConnections = hikariActiveConnections;
+        }
+
+        public int getHikariIdleConnections() {
+            return hikariIdleConnections;
+        }
+
+        public void setHikariIdleConnections(int hikariIdleConnections) {
+            this.hikariIdleConnections = hikariIdleConnections;
+        }
+
+        public int getHikariMinimumIdle() {
+            return hikariMinimumIdle;
+        }
+
+        public void setHikariMinimumIdle(int hikariMinimumIdle) {
+            this.hikariMinimumIdle = hikariMinimumIdle;
+        }
     }
 
     @Override
@@ -544,6 +589,13 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     out.println("dbcp.maxIdle=" + result.getDbcpMaxIdle());
                     out.println("dbcp.numIdle=" + result.getDbcpNumIdle());
                     out.println("dbcp.minIdle=" + result.getDbcpMinIdle());
+
+                    getHikariState(result, context);
+                    out.println("hikari.maximumPoolSize=" + result.getHikariMaximumPoolSize());
+                    out.println("hikari.totalConnections=" + result.getHikariTotalConnections());
+                    out.println("hikari.activeConnections=" + result.getHikariActiveConnections());
+                    out.println("hikari.idleConnections=" + result.getHikariIdleConnections());
+                    out.println("hikari.minimumIdle=" + result.getHikariMinimumIdle());
                 }
             }
             else if (var.equals("memory.max")) {
@@ -739,6 +791,26 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             else if (var.equals("dbcp.minIdle")) {
                 getDbcpState(result, context);
                 out.println(result.getDbcpMinIdle());
+            }
+            else if (var.equals("hikari.maximumPoolSize")) {
+                getHikariState(result, context);
+                out.println(result.getHikariMaximumPoolSize());
+            }
+            else if (var.equals("hikari.totalConnections")) {
+                getHikariState(result, context);
+                out.println(result.getHikariTotalConnections());
+            }
+            else if (var.equals("hikari.activeConnections")) {
+                getHikariState(result, context);
+                out.println(result.getHikariActiveConnections());
+            }
+            else if (var.equals("hikari.idleConnections")) {
+                getHikariState(result, context);
+                out.println(result.getHikariIdleConnections());
+            }
+            else if (var.equals("hikari.minimumIdle")) {
+                getHikariState(result, context);
+                out.println(result.getHikariMinimumIdle());
             }
             else {
                 throw new IllegalArgumentException("Unknown variable: " + var);
@@ -1122,6 +1194,55 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 result.setDbcpMaxIdle(((Integer)mBeanServer.getAttribute(rpName, "maxIdle")).intValue());
                 result.setDbcpNumIdle(((Integer)mBeanServer.getAttribute(rpName, "numIdle")).intValue());
                 result.setDbcpMinIdle(((Integer)mBeanServer.getAttribute(rpName, "minIdle")).intValue());
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void getHikariState(Result result, String contextPath) {
+        if (contextPath == null)
+            throw new IllegalArgumentException("Missing argument: context");
+
+        String contextDataSourceName = contextPath.substring(1);
+        MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
+
+        try {
+            String onStr = "com.zaxxer.hikari:type=Pool (" + contextDataSourceName + ")";
+            ObjectName objectName = new ObjectName(onStr);
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            int count = 0;
+            for (ObjectInstance oi : set) {
+                ObjectName rpName = oi.getObjectName();
+                count++;
+
+                // On ne supporte qu'un seul pool Hikari par contexte
+                if (count > 1)
+                    throw new RuntimeException("Plusieurs pools Hikari sur le contexte " + contextPath + ".");
+
+                result.setHikariActiveConnections(((Integer)mBeanServer.getAttribute(rpName, "ActiveConnections")).intValue());
+                result.setHikariIdleConnections(((Integer)mBeanServer.getAttribute(rpName, "IdleConnections")).intValue());
+                result.setHikariTotalConnections(((Integer)mBeanServer.getAttribute(rpName, "TotalConnections")).intValue());
+            }
+        } catch (JMException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            String onStr = "com.zaxxer.hikari:type=PoolConfig (" + contextDataSourceName + ")";
+            ObjectName objectName = new ObjectName(onStr);
+            Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
+            int count = 0;
+            for (ObjectInstance oi : set) {
+                ObjectName rpName = oi.getObjectName();
+                count++;
+
+                // On ne supporte qu'un seul pool Hikari par contexte
+                if (count > 1)
+                    throw new RuntimeException("Plusieurs pools Hikari sur le contexte " + contextPath + ".");
+
+                result.setHikariMaximumPoolSize(((Integer)mBeanServer.getAttribute(rpName, "MaximumPoolSize")).intValue());
+                result.setHikariMinimumIdle(((Integer)mBeanServer.getAttribute(rpName, "MinimumIdle")).intValue());
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
