@@ -229,8 +229,7 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         // Source : StatusTransformer.writeProcessorState()
         ObjectName rpName = rpInstance.getObjectName();
         out.println("  # " + rpName);
-        Integer stageValue = (Integer)mBeanServer.getAttribute(rpName, "stage");
-        int stage = stageValue.intValue();
+        int stage = (Integer)mBeanServer.getAttribute(rpName, "stage");
         boolean fullStatus = true;
         boolean showRequest = true;
         String stageStr = null;

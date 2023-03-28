@@ -846,12 +846,12 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectName on = oi.getObjectName();
                 String name = (String)mBeanServer.getAttribute(on, "Name");
                 if (name.equals("G1 Old Generation") || name.equals("PS MarkSweep")) {
-                    result.setGcOldGenerationCollectionCount(((Long)mBeanServer.getAttribute(on, "CollectionCount")));
-                    result.setGcOldGenerationCollectionTime(((Long)mBeanServer.getAttribute(on, "CollectionTime")));
+                    result.setGcOldGenerationCollectionCount((Long)mBeanServer.getAttribute(on, "CollectionCount"));
+                    result.setGcOldGenerationCollectionTime((Long)mBeanServer.getAttribute(on, "CollectionTime"));
                 }
                 else if (name.equals("G1 Young Generation") || name.equals("PS Scavenge")) {
-                    result.setGcYoungGenerationCollectionCount(((Long)mBeanServer.getAttribute(on, "CollectionCount")));
-                    result.setGcYoungGenerationCollectionTime(((Long)mBeanServer.getAttribute(on, "CollectionTime")));
+                    result.setGcYoungGenerationCollectionCount((Long)mBeanServer.getAttribute(on, "CollectionCount"));
+                    result.setGcYoungGenerationCollectionTime((Long)mBeanServer.getAttribute(on, "CollectionTime"));
                 }
             }
         } catch (JMException e) {
@@ -866,12 +866,12 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             for (ObjectInstance oi : set) {
                 ObjectName on = oi.getObjectName();
-                result.setProcessCpuLoad(((Double)mBeanServer.getAttribute(on, "ProcessCpuLoad")));
-                result.setSystemCpuLoad(((Double)mBeanServer.getAttribute(on, "SystemCpuLoad")));
+                result.setProcessCpuLoad((Double)mBeanServer.getAttribute(on, "ProcessCpuLoad"));
+                result.setSystemCpuLoad((Double)mBeanServer.getAttribute(on, "SystemCpuLoad"));
 
                 try {
-                    result.setProcessFileDescriptorCountMax(((Long)mBeanServer.getAttribute(on, "MaxFileDescriptorCount")));
-                    result.setProcessFileDescriptorCountOpen(((Long)mBeanServer.getAttribute(on, "OpenFileDescriptorCount")));
+                    result.setProcessFileDescriptorCountMax((Long)mBeanServer.getAttribute(on, "MaxFileDescriptorCount"));
+                    result.setProcessFileDescriptorCountOpen((Long)mBeanServer.getAttribute(on, "OpenFileDescriptorCount"));
                 }
                 catch (AttributeNotFoundException e) {
                     // Ignorer : Ces attributs n'existent pas sous Windows
@@ -889,7 +889,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
         if (value == null)
             return defaultValue;
         else if (value instanceof Integer)
-            return ((Integer)value).intValue();
+            return (Integer)value;
         else if (value instanceof String)
             return Integer.parseInt((String)value);
         else
@@ -949,8 +949,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectName rpName = oi.getObjectName();
 
                 // Voir conversion stage/état dans org.apache.catalina.manager.StatusTransformer.writeProcessorState()
-                Integer stageValue = (Integer)mBeanServer.getAttribute(rpName, "stage");
-                int stage = stageValue.intValue();
+                int stage = (Integer)mBeanServer.getAttribute(rpName, "stage");
                 switch (stage) {
                     case (3/*org.apache.coyote.Constants.STAGE_SERVICE*/):
                         result.addThreadsService();
@@ -984,8 +983,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectName rpName = oi.getObjectName();
 
                 // Voir conversion stage/état dans org.apache.catalina.manager.StatusTransformer.writeProcessorState()
-                Integer stageValue = (Integer)mBeanServer.getAttribute(rpName, "stage");
-                int stage = stageValue.intValue();
+                int stage = (Integer)mBeanServer.getAttribute(rpName, "stage");
                 switch (stage) {
                     case (3/*org.apache.coyote.Constants.STAGE_SERVICE*/):
                         result.addThreadsHttpService();
@@ -1024,8 +1022,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
-                result.setRequestsTotal(((Integer)mBeanServer.getAttribute(rpName, "requestCount")).intValue());
-                result.setRequestsError(((Integer)mBeanServer.getAttribute(rpName, "errorCount")).intValue());
+                result.setRequestsTotal((Integer)mBeanServer.getAttribute(rpName, "requestCount"));
+                result.setRequestsError((Integer)mBeanServer.getAttribute(rpName, "errorCount"));
 
                 // Normalement, il n'y a qu'un seul GlobalRequestProcessor par type de connecteur
                 if (iterator.hasNext())
@@ -1046,8 +1044,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
-                result.setRequestsHttpTotal(((Integer)mBeanServer.getAttribute(rpName, "requestCount")).intValue());
-                result.setRequestsHttpError(((Integer)mBeanServer.getAttribute(rpName, "errorCount")).intValue());
+                result.setRequestsHttpTotal((Integer)mBeanServer.getAttribute(rpName, "requestCount"));
+                result.setRequestsHttpError((Integer)mBeanServer.getAttribute(rpName, "errorCount"));
 
                 // Normalement, il n'y a qu'un seul GlobalRequestProcessor par type de connecteur
                 if (iterator.hasNext())
@@ -1073,8 +1071,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
-                result.setThreadsCount(((Integer)mBeanServer.getAttribute(rpName, "currentThreadCount")).intValue());
-                result.setThreadsBusy(((Integer)mBeanServer.getAttribute(rpName, "currentThreadsBusy")).intValue());
+                result.setThreadsCount((Integer)mBeanServer.getAttribute(rpName, "currentThreadCount"));
+                result.setThreadsBusy((Integer)mBeanServer.getAttribute(rpName, "currentThreadsBusy"));
 
                 // Normalement, il n'y a qu'un seul ThreadPool par type de connecteur
                 if (iterator.hasNext())
@@ -1095,8 +1093,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
 
-                result.setThreadsHttpCount(((Integer)mBeanServer.getAttribute(rpName, "currentThreadCount")).intValue());
-                result.setThreadsHttpBusy(((Integer)mBeanServer.getAttribute(rpName, "currentThreadsBusy")).intValue());
+                result.setThreadsHttpCount((Integer)mBeanServer.getAttribute(rpName, "currentThreadCount"));
+                result.setThreadsHttpBusy((Integer)mBeanServer.getAttribute(rpName, "currentThreadsBusy"));
 
                 // Normalement, il n'y a qu'un seul ThreadPool par type de connecteur
                 if (iterator.hasNext())
@@ -1136,9 +1134,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 long upTimeMillisDefaultUser = (Long)mBeanServer.getAttribute(rpName, "upTimeMillisDefaultUser");
                 if (upTimeMillisDefaultUser < minimumUpTimeMillisDefaultUser) {
                     minimumUpTimeMillisDefaultUser = upTimeMillisDefaultUser;
-                    result.setC3p0MaxPoolSize(((Integer)mBeanServer.getAttribute(rpName, "maxPoolSize")));
-                    result.setC3p0NumConnections(((Integer)mBeanServer.getAttribute(rpName, "numConnections")));
-                    result.setC3p0NumBusyConnections(((Integer)mBeanServer.getAttribute(rpName, "numBusyConnections")));
+                    result.setC3p0MaxPoolSize((Integer)mBeanServer.getAttribute(rpName, "maxPoolSize"));
+                    result.setC3p0NumConnections((Integer)mBeanServer.getAttribute(rpName, "numConnections"));
+                    result.setC3p0NumBusyConnections((Integer)mBeanServer.getAttribute(rpName, "numBusyConnections"));
                 }
             }
         } catch (JMException e) {
@@ -1177,23 +1175,23 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                     throw new RuntimeException("Plusieurs pools DBCP sur le contexte " + contextPath + ".");
 
                 try {
-                    result.setDbcpMaxTotal(((Integer)mBeanServer.getAttribute(rpName, "maxTotal")).intValue());
+                    result.setDbcpMaxTotal((Integer)mBeanServer.getAttribute(rpName, "maxTotal"));
                 }
                 catch (AttributeNotFoundException e) {
                     // Ignorer : Cet attribut n'existe pas avec DBCP 1
                 }
 
                 try {
-                    result.setDbcpMaxActive(((Integer)mBeanServer.getAttribute(rpName, "maxActive")).intValue());
+                    result.setDbcpMaxActive((Integer)mBeanServer.getAttribute(rpName, "maxActive"));
                 }
                 catch (AttributeNotFoundException e) {
                     // Ignorer : Cet attribut n'existe pas avec DBCP 2
                 }
 
-                result.setDbcpNumActive(((Integer)mBeanServer.getAttribute(rpName, "numActive")).intValue());
-                result.setDbcpMaxIdle(((Integer)mBeanServer.getAttribute(rpName, "maxIdle")).intValue());
-                result.setDbcpNumIdle(((Integer)mBeanServer.getAttribute(rpName, "numIdle")).intValue());
-                result.setDbcpMinIdle(((Integer)mBeanServer.getAttribute(rpName, "minIdle")).intValue());
+                result.setDbcpNumActive((Integer)mBeanServer.getAttribute(rpName, "numActive"));
+                result.setDbcpMaxIdle((Integer)mBeanServer.getAttribute(rpName, "maxIdle"));
+                result.setDbcpNumIdle((Integer)mBeanServer.getAttribute(rpName, "numIdle"));
+                result.setDbcpMinIdle((Integer)mBeanServer.getAttribute(rpName, "minIdle"));
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
@@ -1220,9 +1218,9 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 if (count > 1)
                     throw new RuntimeException("Plusieurs pools Hikari sur le contexte " + contextPath + ".");
 
-                result.setHikariActiveConnections(((Integer)mBeanServer.getAttribute(rpName, "ActiveConnections")).intValue());
-                result.setHikariIdleConnections(((Integer)mBeanServer.getAttribute(rpName, "IdleConnections")).intValue());
-                result.setHikariTotalConnections(((Integer)mBeanServer.getAttribute(rpName, "TotalConnections")).intValue());
+                result.setHikariActiveConnections((Integer)mBeanServer.getAttribute(rpName, "ActiveConnections"));
+                result.setHikariIdleConnections((Integer)mBeanServer.getAttribute(rpName, "IdleConnections"));
+                result.setHikariTotalConnections((Integer)mBeanServer.getAttribute(rpName, "TotalConnections"));
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
@@ -1241,8 +1239,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 if (count > 1)
                     throw new RuntimeException("Plusieurs pools Hikari sur le contexte " + contextPath + ".");
 
-                result.setHikariMaximumPoolSize(((Integer)mBeanServer.getAttribute(rpName, "MaximumPoolSize")).intValue());
-                result.setHikariMinimumIdle(((Integer)mBeanServer.getAttribute(rpName, "MinimumIdle")).intValue());
+                result.setHikariMaximumPoolSize((Integer)mBeanServer.getAttribute(rpName, "MaximumPoolSize"));
+                result.setHikariMinimumIdle((Integer)mBeanServer.getAttribute(rpName, "MinimumIdle"));
             }
         } catch (JMException e) {
             throw new RuntimeException(e);
