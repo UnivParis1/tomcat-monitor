@@ -83,8 +83,8 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         out.println();
 
         Container[] children = host.findChildren();
-        for (int i = 0; i < children.length; i++) {
-            Context context = (Context)children[i];
+        for (Container child : children) {
+            Context context = (Context)child;
 
             if (!context.getState().isAvailable())
                 continue;

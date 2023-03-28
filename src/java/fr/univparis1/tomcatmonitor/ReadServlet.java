@@ -1258,8 +1258,8 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
             internalContextPath = contextPath;
 
         Container[] children = host.findChildren();
-        for (int i = 0; i < children.length; i++) {
-            Context context = (Context)children[i];
+        for (Container child : children) {
+            Context context = (Context)child;
             if (context.getPath().equals(internalContextPath)) {
                 getSessionsState(result, context);
                 getSopraPoolState(result, context);
