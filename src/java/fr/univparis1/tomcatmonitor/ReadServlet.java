@@ -899,7 +899,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getConnectorState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            ObjectName objectName = new ObjectName("Catalina:type=Connector,*");
+            ObjectName objectName = new ObjectName("*:type=Connector,*");
             QueryExp query = Query.eq(Query.attr("protocol"), Query.value("AJP/1.3"));
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, query);
             for (ObjectInstance oi : set) {
@@ -918,7 +918,7 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getConnectorStateHttp(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            ObjectName objectName = new ObjectName("Catalina:type=Connector,*");
+            ObjectName objectName = new ObjectName("*:type=Connector,*");
             QueryExp query = Query.eq(Query.attr("protocol"), Query.value("HTTP/1.1"));
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, query);
             for (ObjectInstance oi : set) {
@@ -937,11 +937,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getThreadsState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=RequestProcessor,worker=\"ajp-*\",*"; // Tomcat 7
+            String onStr = "*:type=RequestProcessor,worker=\"ajp-*\",*"; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=RequestProcessor,worker=jk-*,*"; // Tomcat 6
+                onStr = "*:type=RequestProcessor,worker=jk-*,*"; // Tomcat 6
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
@@ -976,11 +976,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getThreadsStateHttp(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=RequestProcessor,worker=\"https-*\",*";
+            String onStr = "*:type=RequestProcessor,worker=\"https-*\",*";
             ObjectName objectName = new ObjectName(onStr);
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=RequestProcessor,worker=\"http-*\",*";
+                onStr = "*:type=RequestProcessor,worker=\"http-*\",*";
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
@@ -1015,11 +1015,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getGlobalRequestProcessorState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=GlobalRequestProcessor,name=\"ajp-*\""; // Tomcat 7
+            String onStr = "*:type=GlobalRequestProcessor,name=\"ajp-*\""; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=GlobalRequestProcessor,name=jk-*";  // Tomcat 6
+                onStr = "*:type=GlobalRequestProcessor,name=jk-*";  // Tomcat 6
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
@@ -1042,11 +1042,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getGlobalRequestProcessorStateHttp(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=GlobalRequestProcessor,name=\"https-*\"";
+            String onStr = "*:type=GlobalRequestProcessor,name=\"https-*\"";
             ObjectName objectName = new ObjectName(onStr);
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=GlobalRequestProcessor,name=\"http-*\"";
+                onStr = "*:type=GlobalRequestProcessor,name=\"http-*\"";
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
@@ -1069,11 +1069,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getThreadPoolState(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=ThreadPool,name=\"ajp-*\""; // Tomcat 7
+            String onStr = "*:type=ThreadPool,name=\"ajp-*\""; // Tomcat 7
             ObjectName objectName = new ObjectName(onStr);
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=ThreadPool,name=jk-*";  // Tomcat 6
+                onStr = "*:type=ThreadPool,name=jk-*";  // Tomcat 6
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
@@ -1096,11 +1096,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
     private void getThreadPoolStateHttp(Result result) {
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=ThreadPool,name=\"https-*\"";
+            String onStr = "*:type=ThreadPool,name=\"https-*\"";
             ObjectName objectName = new ObjectName(onStr);
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=ThreadPool,name=\"http-*\"";
+                onStr = "*:type=ThreadPool,name=\"http-*\"";
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
@@ -1165,11 +1165,11 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
 
         MBeanServer mBeanServer = Registry.getRegistry(null, null).getMBeanServer();
         try {
-            String onStr = "Catalina:type=DataSource,host=*,context=" + contextPath + ",class=*,name=*"; // Tomcat 9
+            String onStr = "*:type=DataSource,host=*,context=" + contextPath + ",class=*,name=*"; // Tomcat 9
             ObjectName objectName = new ObjectName(onStr);
             Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
             if (set.isEmpty()) {
-                onStr = "Catalina:type=DataSource,context=" + contextPath + ",host=*,class=*,name=*"; // Tomcat 7
+                onStr = "*:type=DataSource,context=" + contextPath + ",host=*,class=*,name=*"; // Tomcat 7
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }

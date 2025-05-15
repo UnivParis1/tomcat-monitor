@@ -314,17 +314,18 @@ public class DefaultServlet extends HttpServlet implements ContainerServlet {
         // Source : StatusTransformer.writeConnectorState()
         ObjectName tpName = oi.getObjectName();
         out.println("# " + tpName);
-        String name = tpName.getKeyProperty("name");
+        String domain = tpName.getDomain(); // Service name
+        String name = tpName.getKeyProperty("name"); // Connector ObjectName
         out.println(name);
 
         printThreadPoolState(out, mBeanServer, oi);
 
-        ObjectName grpName = new ObjectName("Catalina:type=GlobalRequestProcessor,name=" + name);
+        ObjectName grpName = new ObjectName(domain + ":type=GlobalRequestProcessor,name=" + name);
         ObjectInstance grpInstance = mBeanServer.getObjectInstance(grpName);
         printGlobalRequestProcessorState(out, mBeanServer, grpInstance);
 
         // Query Request Processors
-        String onStr = "*:type=RequestProcessor,worker=" + name + ",*";
+        String onStr = domain + ":type=RequestProcessor,worker=" + name + ",*";
         ObjectName objectName = new ObjectName(onStr);
         Set<ObjectInstance> set = mBeanServer.queryMBeans(objectName, null);
         for (ObjectInstance rpInstance : set) {
