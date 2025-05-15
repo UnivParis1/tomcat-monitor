@@ -1050,6 +1050,17 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
+
+            // Verrue Ametys : monitorer uniquement le GlobalRequestProcessor principal du FO.
+            for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                if (rpName.getDomain().equals("CatalinaBO")
+                || (rpName.getDomain().equals("CatalinaFO") && !rpName.getKeyProperty("name").equals(("\"http-nio-8081\""))))
+                    iterator.remove();
+            }
+
             for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
@@ -1104,6 +1115,17 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 objectName = new ObjectName(onStr);
                 set = mBeanServer.queryMBeans(objectName, null);
             }
+
+            // Verrue Ametys : monitorer uniquement le ThreadPool principal du FO.
+            for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
+                ObjectInstance oi = iterator.next();
+                ObjectName rpName = oi.getObjectName();
+
+                if (rpName.getDomain().equals("CatalinaBO")
+                || (rpName.getDomain().equals("CatalinaFO") && !rpName.getKeyProperty("name").equals(("\"http-nio-8081\""))))
+                    iterator.remove();
+            }
+
             for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
                 ObjectInstance oi = iterator.next();
                 ObjectName rpName = oi.getObjectName();
