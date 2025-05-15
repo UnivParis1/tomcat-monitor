@@ -1160,6 +1160,39 @@ public class ReadServlet extends HttpServlet implements ContainerServlet {
                 QueryExp query = Query.eq(Query.attr("dataSourceName"), Query.value(contextDataSourceName));
                 set = mBeanServer.queryMBeans(objectName, query);
             }
+            if (set.isEmpty()) {
+                // Data sources qui ne sont pas nommées explicitement
+                onStr = "com.mchange.v2.c3p0:type=PooledDataSource,identityToken=*,name=*";
+                objectName = new ObjectName(onStr);
+                set = mBeanServer.queryMBeans(objectName, null);
+
+                // Détecter Ametys
+                boolean isAmetys = false;
+                for (ObjectInstance oi : set) {
+                    ObjectName rpName = oi.getObjectName();
+                    String user = (String)mBeanServer.getAttribute(rpName, "user");
+                    if (user.equals("ametys")) {
+                        isAmetys = true;
+                        break;
+                    }
+                }
+
+                // Verrue Ametys : monitorer uniquement le pool MySQL
+                if (isAmetys) {
+                    for (Iterator<ObjectInstance> iterator = set.iterator(); iterator.hasNext(); ) {
+                        ObjectInstance oi = iterator.next();
+                        ObjectName rpName = oi.getObjectName();
+
+                        String user = (String)mBeanServer.getAttribute(rpName, "user");
+                        if (!user.equals("ametys"))
+                            iterator.remove();
+                    }
+                }
+
+                if (set.size() > 1)
+                    throw new RuntimeException("Plusieurs PooledDataSource c3p0 trouvées.");
+            }
+
             for (ObjectInstance oi : set) {
                 ObjectName rpName = oi.getObjectName();
 
